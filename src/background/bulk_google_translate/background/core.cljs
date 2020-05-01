@@ -66,7 +66,6 @@
 
       )))
 
-;; https://translate.google.com/translate_tts?ie=UTF-8&q=%E9%8C%90&tl=zh-CN&total=1&idx=0&textlen=1&tk=314796.161529&client=webapp&prev=input
 (defn process-chrome-event [event-num event]
   (log (gstring/format "BACKGROUND: got chrome event (%05d)" event-num) event)
   (let [[event-id event-args] event]

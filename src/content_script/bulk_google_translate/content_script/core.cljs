@@ -39,13 +39,17 @@
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
 (defn exec-translation []
+  ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
+  ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
+
   (let [_ (prn ">> calling exec-translation")
         input "https://translate.google.com/#view=home&op=translate&sl=zh-CN&tl=en&text=錐"
         _ (set! (.. js/window -location -href) input)]
 
     (go
       (<! (async/timeout 2000))
-      (let [play-btn (sel1 ".src-tts")
+      (let [_ (prn ">> terse translation" (dommy/text (sel1 ".translation")))
+            play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
         (doto play-btn
