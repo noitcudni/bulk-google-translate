@@ -37,7 +37,8 @@
   "permissions": [
     "storage",
     "https://translate.google.com/*",
-    "webRequest"
+    "webRequest",
+    "downloads"
   ],
   "manifest_version": 2
 }
