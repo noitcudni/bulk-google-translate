@@ -9,6 +9,7 @@
             [chromex.ext.web-request :as web-request]
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
+            [chromex.ext.downloads :refer-macros [download]]
             [bulk-google-translate.background.storage :refer [test-storage!]]))
 
 (def clients (atom []))
@@ -47,13 +48,43 @@
     (post-message! client "a new tab was created")))
 
 ; -- main event loop --------------------------------------------------------------------------------------------------------
+(def download-history (atom #{}))
+
+(defn download-audio [url]
+  (go
+    (let [;resp (<! (http/get url))
+          ;; data-blob (js/Blob. (clj->js [(:body resp)])
+          ;;                     (clj->js {:type "audio/mpeg-3"}))
+          ;; url (js/URL.createObjectURL data-blob)
+          ]
+      (download (clj->js {:url url
+                          :filename "zhui1.mp3"
+                          :saveAs false
+                          }))
+      ;; (prn ">> audio: " (:body resp))
+      ;; (:body resp)
+
+      )))
+
+;; https://translate.google.com/translate_tts?ie=UTF-8&q=%E9%8C%90&tl=zh-CN&total=1&idx=0&textlen=1&tk=314796.161529&client=webapp&prev=input
 (defn process-chrome-event [event-num event]
   (log (gstring/format "BACKGROUND: got chrome event (%05d)" event-num) event)
   (let [[event-id event-args] event]
     (case event-id
       ::runtime/on-connect (apply handle-client-connection! event-args)
       ::tabs/on-created (tell-clients-about-new-tab!)
-      ::web-request/on-completed (prn ">> on-completed: " event)
+      ::web-request/on-completed (let [url (-> event-args
+                                               first
+                                               js->clj
+                                               (get "url"))
+                                       ]
+                                   (when (and (clojure.string/includes? url "translate_tts")
+                                              (not (contains? @download-history url)))
+                                     _ (prn ">> event-args" event-args)
+                                     _ (prn ">> url: " url)
+                                     (swap! download-history conj url)
+                                     (download-audio url)
+                                     ))
       nil)))
 
 (defn run-chrome-event-loop! [chrome-event-channel]

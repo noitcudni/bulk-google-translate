@@ -45,9 +45,12 @@
 
     (go
       (<! (async/timeout 2000))
-      ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
-      ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
-      (prn ">> translated text: " (dommy/text (sel1 ".translation")))
+      (let [play-btn (sel1 ".src-tts")
+            mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
+            mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
+        (doto play-btn
+          (.dispatchEvent mouse-down-evt)
+          (.dispatchEvent mouse-up-evt)))
       )))
 
 (defn init! []
