@@ -79,8 +79,8 @@
                                        ]
                                    (when (and (clojure.string/includes? url "translate_tts")
                                               (not (contains? @download-history url)))
-                                     _ (prn ">> event-args" event-args)
-                                     _ (prn ">> url: " url)
+                                     (prn ">> event-args" event-args)
+                                     (prn ">> url: " url)
                                      (swap! download-history conj url)
                                      (download-audio url)
                                      ))

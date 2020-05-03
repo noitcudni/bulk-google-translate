@@ -26,3 +26,14 @@
         (if error
           (error "fetch key2 and key3 error:" error)
           (log "fetch key2 and key3:" items))))))
+
+(def default-state {:target #{}})
+
+(def get-ui-state []
+  (let [local-storage (storage/get-local)]
+    (go
+      (let [[[ui-state] error] (<! (get local-storage "ui-state"))]
+        (if error
+          default-state
+          ui-state
+          )))))
