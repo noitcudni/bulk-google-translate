@@ -10,7 +10,8 @@
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [chromex.ext.downloads :refer-macros [download]]
-            [bulk-google-translate.background.storage :refer [test-storage!]]))
+            [bulk-google-translate.background.storage :as storage]
+            ))
 
 (def clients (atom []))
 
@@ -105,5 +106,4 @@
 
 (defn init! []
   (log "BACKGROUND: init")
-  (test-storage!)
   (boot-chrome-event-loop!))

@@ -9,6 +9,7 @@
                  [reagent "0.8.1"]
                  [reagent-utils "0.3.3"]
                  [re-com "2.6.0"]
+                 [com.cognitect/transit-cljs "0.8.264"]
                  [prismatic/dommy "1.1.0"]
                  [domina "1.0.3"]]
 
