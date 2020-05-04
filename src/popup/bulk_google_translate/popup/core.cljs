@@ -31,9 +31,7 @@
 
 
 (defn current-page []
-  (let [target-cursor (reagent/cursor reagent.session/state [:target])
-        af-ratom (reaction (contains? @target-cursor "af"))
-        ]
+  (let [af-ratom (reaction (contains? (reagent.session/get :target) "af"))]
     [recom/v-box
      :width "700px"
      :align :center
