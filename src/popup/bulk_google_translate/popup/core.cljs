@@ -922,12 +922,16 @@
                    :label "yes"
                    :model auto-detect-ratom?
                    :value true
-                   :on-change #(reset! auto-detect-ratom? %)]
+                   :on-change (fn [v]
+                                (reset! auto-detect-ratom? v)
+                                (reagent.session/put! :source #{"auto"}))]
                   [recom/radio-button
                    :label "no"
                    :model auto-detect-ratom?
                    :value false
-                   :on-change #(reset! auto-detect-ratom? %)]
+                   :on-change (fn [v]
+                                (reset! auto-detect-ratom? v)
+                                (reagent.session/put! :source #{""}))]
                   (cond (= @auto-detect-ratom? true)
                         [recom/hyperlink
                          :label "Next >>"
@@ -982,9 +986,9 @@
     (connect-to-background-page!)
     (prn "init reagent.session/state")
 
-    (reagent.session/reset! (<! (storage/get-ui-state)))
-    ;; (reagent.session/reset! {:target #{}
-    ;;                          :source #{}})
+    ;; (reagent.session/reset! (<! (storage/get-ui-state)))
+    (reagent.session/reset! {:target #{}
+                             :source #{}})
     (prn ">> initial reagent.sesssion/state: " @reagent.session/state) ;;xxx
 
     (add-watch reagent.session/state :target
