@@ -917,28 +917,60 @@
     )
   )
 
+(defn pane-1 []
+  (let [auto-detect-ratom? (reagent/atom nil)
+        display-next-ratom? (reagent/atom false)]
+    (fn []
+      [recom/v-box
+       :width "700px"
+       :align :start
+       :children [[recom/p "We will bulk translate from one language to one or many languages. First, let Google translate auto detect the input language?"]
+                  [recom/radio-button
+                   :label "yes"
+                   :model auto-detect-ratom?
+                   :value true
+                   :on-change #(reset! auto-detect-ratom? %)]
+                  [recom/radio-button
+                   :label "no"
+                   :model auto-detect-ratom?
+                   :value false
+                   :on-change #(reset! auto-detect-ratom? %)
+                   (reset! display-next-ratom? false)]
+                  (when @auto-detect-ratom?
+                    [recom/hyperlink
+                     :label "Next >>"
+                     :on-click (fn [] (prn "next >> clicked!"))])
+                  ]])))
+
 (defn current-page []
-  (let []
-    [recom/v-box
-     :width "700px"
-     :align :center
-     :children [[recom/h-box
-                 :align :start
-                 :style {:padding "10px"}
-                 :children [[recom/button
-                             :label "Submit CSV File"
-                             :tooltip [recom/v-box
-                                       :children [[recom/label :label "Tooltip goes here"]]
-                                       ]
-                             :style {:width "200px"
-                                     :background-color "#007bff"
-                                     :color "white"}
-                             :on-click (fn [e]
-                                         (go (<! (storage/get-ui-state)))
-                                         )]]]
-                [lang-option-pane :target]
-                ]
-     ]))
+  (let [current-step (reagent/atom :step1)]
+    (cond (= @current-step :step1) [pane-1]
+          (= @current-step :step2) [recom/v-box
+                                    :width "700px"
+                                    :align :center
+                                    :children [[:div "world"]]]
+          )
+
+    #_[recom/v-box
+       :width "700px"
+       :align :center
+       :children [[recom/h-box
+                   :align :start
+                   :style {:padding "10px"}
+                   :children [[recom/button
+                               :label "Submit CSV File"
+                               :tooltip [recom/v-box
+                                         :children [[recom/label :label "Tooltip goes here"]]
+                                         ]
+                               :style {:width "200px"
+                                       :background-color "#007bff"
+                                       :color "white"}
+                               :on-click (fn [e]
+                                           (go (<! (storage/get-ui-state)))
+                                           )]]]
+                  [lang-option-pane :target]
+                  ]
+       ]))
 
 
 (defn mount-root []
