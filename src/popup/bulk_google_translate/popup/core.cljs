@@ -160,8 +160,7 @@
         ;; Kinyarwanda rw
         rw-ratom (reaction (contains? (reagent.session/get type) "rw"))
         ;; Korean	ko
-        ko-ratom (reaction (contains? (reagent.session/get type) "ko"))
-        ;; Kurdish	ku
+        ko-ratom (reaction (contains? (reagent.session/get type) "ko")) ;; Kurdish	ku
         ku-ratom (reaction (contains? (reagent.session/get type) "ku"))
         ;; Kyrgyz	ky
         ky-ratom (reaction (contains? (reagent.session/get type) "ky"))
@@ -924,7 +923,7 @@
       [recom/v-box
        :width "700px"
        :align :start
-       :children [[recom/p "We will bulk translate from one language to one or many languages. First, let Google translate auto detect the input language?"]
+       :children [[recom/p "We will bulk translate from one language to one or many languages. First, do you want to let Google translate auto detect your input language?"]
                   [recom/radio-button
                    :label "yes"
                    :model auto-detect-ratom?
@@ -934,12 +933,17 @@
                    :label "no"
                    :model auto-detect-ratom?
                    :value false
-                   :on-change #(reset! auto-detect-ratom? %)
-                   (reset! display-next-ratom? false)]
-                  (when @auto-detect-ratom?
-                    [recom/hyperlink
-                     :label "Next >>"
-                     :on-click (fn [] (prn "next >> clicked!"))])
+                   :on-change #(reset! auto-detect-ratom? %)]
+                  (cond (= @auto-detect-ratom? true)
+                        [recom/hyperlink
+                         :label "Next >>"
+                         :on-click (fn [] (prn "next >> clicked!"))]
+                        ;; todo change it to source when it's ready
+                        (= @auto-detect-ratom? false)
+                        [recom/v-box
+                         :children [[recom/p "Please select your input language"]
+                                    [lang-option-pane :target]]]
+                        )
                   ]])))
 
 (defn current-page []
