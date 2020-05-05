@@ -912,36 +912,52 @@
 
 (defn pane-1 []
   (let [auto-detect-ratom? (reagent/atom nil)
-        display-next-ratom? (reagent/atom false)]
+        display-next-ratom? (reaction (not (empty? (reagent.session/get :source))))]
     (fn []
-      [recom/v-box
-       :width "700px"
-       :align :start
-       :children [[recom/p "We will bulk translate from one language to one or many languages. First, do you want to let Google translate auto detect your input language?"]
-                  [recom/radio-button
-                   :label "yes"
-                   :model auto-detect-ratom?
-                   :value true
-                   :on-change (fn [v]
-                                (reset! auto-detect-ratom? v)
-                                (reagent.session/put! :source #{"auto"}))]
-                  [recom/radio-button
-                   :label "no"
-                   :model auto-detect-ratom?
-                   :value false
-                   :on-change (fn [v]
-                                (reset! auto-detect-ratom? v)
-                                (reagent.session/put! :source #{""}))]
-                  (cond (= @auto-detect-ratom? true)
-                        [recom/hyperlink
-                         :label "Next >>"
-                         :on-click (fn [] (prn "next >> clicked!"))]
-                        ;; todo change it to source when it's ready
-                        (= @auto-detect-ratom? false)
-                        [recom/v-box
-                         :children [[recom/p "Please select your input language"]
-                                    [lang-option-pane :source]]]
-                        )
+      [recom/h-box
+       :children [[recom/v-box
+                   :width "700px"
+                   :align :start
+                   :children [[recom/p "We will bulk translate from one language to one or many languages. First, do you want to let Google translate auto detect your input language?"]
+                              [recom/radio-button
+                               :label "yes"
+                               :model auto-detect-ratom?
+                               :value true
+                               :on-change (fn [v]
+                                            (reset! auto-detect-ratom? v)
+                                            (reagent.session/put! :source #{"auto"}))]
+                              [recom/radio-button
+                               :label "no"
+                               :model auto-detect-ratom?
+                               :value false
+                               :on-change (fn [v]
+                                            (reset! auto-detect-ratom? v)
+                                            (reagent.session/put! :source #{}))]
+                              (when (= @auto-detect-ratom? false)
+                                [recom/v-box
+                                 :children [[recom/p "Please select your input language"]
+                                            [lang-option-pane :source]]])
+
+                              #_(cond (= @auto-detect-ratom? true)
+                                    [recom/hyperlink
+                                     :label "Next >>"
+                                     :on-click (fn [] (prn "next >> clicked!"))]
+                                    ;; todo change it to source when it's ready
+                                    (= @auto-detect-ratom? false)
+                                    [recom/v-box
+                                     :children [[recom/p "Please select your input language"]
+                                                [lang-option-pane :source]]]
+                                    )
+                              ]]
+                  (when @display-next-ratom?
+                    [recom/box
+                     :align :center
+                     :child [recom/button
+                             :label "Next"
+                             :style {:height "500px"
+                                     :background-color "#28a745"
+                                     :color "white"}
+                             :on-click (fn [e])]])
                   ]])))
 
 (defn current-page []
