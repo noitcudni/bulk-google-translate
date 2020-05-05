@@ -29,26 +29,20 @@
     (post-message! background-port "hello from POPUP!")
     (run-message-loop! background-port)))
 
-
-(defn cb-handler-fn-fn [type]
-  (fn [iso]
-    (fn [checked?]
-      (if checked?
-        (reagent.session/update! type conj iso)
-        (reagent.session/update! type disj iso))
-      )))
-
-(def target-cb-handler-fn
-  (cb-handler-fn-fn :target))
-
-#_(defn target-cb-handler-fn [iso]
+(defn cb-handler-fn [type iso]
   (fn [checked?]
-    (if checked?
-      (reagent.session/update! :target conj iso)
-      (reagent.session/update! :target disj iso))))
+    (cond (= type :target)
+          (if checked?
+            (reagent.session/update! :target conj iso)
+            (reagent.session/update! :target disj iso))
+          (= type :source)
+          (if checked?
+            (reagent.session/put! :source #{iso})
+            (reagent.session/put! :source #{})))
+    ))
 
 (defn lang-option-pane [type]
-  (let [
+  (let [;;cb-handler-fn (cb-handler-fn-fn type)
         ;; Afrikaans	af
         af-ratom (reaction (contains? (reagent.session/get type) "af"))
         ;; Albanian	sq
@@ -216,76 +210,76 @@
         pa-ratom (reaction (contains? (reagent.session/get type) "pa"))
 
         ;; Romanian	ro
-        ro-ratom (reaction (contains? (reagent.session/get :target) "ro"))
+        ro-ratom (reaction (contains? (reagent.session/get type) "ro"))
         ;; Russian	ru
-        ru-ratom (reaction (contains? (reagent.session/get :target) "ru"))
+        ru-ratom (reaction (contains? (reagent.session/get type) "ru"))
         ;; Samoan	sm
-        sm-ratom (reaction (contains? (reagent.session/get :target) "sm"))
+        sm-ratom (reaction (contains? (reagent.session/get type) "sm"))
         ;; Scots Gaelic	gd
-        gd-ratom (reaction (contains? (reagent.session/get :target) "gd"))
+        gd-ratom (reaction (contains? (reagent.session/get type) "gd"))
         ;; Serbian	sr
-        sr-ratom (reaction (contains? (reagent.session/get :target) "sr"))
+        sr-ratom (reaction (contains? (reagent.session/get type) "sr"))
 
         ;; Sesotho	st
-        st-ratom (reaction (contains? (reagent.session/get :target) "st"))
+        st-ratom (reaction (contains? (reagent.session/get type) "st"))
         ;; Shona	sn
-        sn-ratom (reaction (contains? (reagent.session/get :target) "sn"))
+        sn-ratom (reaction (contains? (reagent.session/get type) "sn"))
         ;; Sindhi	sd
-        sd-ratom (reaction (contains? (reagent.session/get :target) "sd"))
+        sd-ratom (reaction (contains? (reagent.session/get type) "sd"))
         ;; Sinhala (Sinhalese)	si
-        si-ratom (reaction (contains? (reagent.session/get :target) "si"))
+        si-ratom (reaction (contains? (reagent.session/get type) "si"))
         ;; Slovak	sk
-        sk-ratom (reaction (contains? (reagent.session/get :target) "sk"))
+        sk-ratom (reaction (contains? (reagent.session/get type) "sk"))
         ;; Slovenian	sl
-        sl-ratom (reaction (contains? (reagent.session/get :target) "sl"))
+        sl-ratom (reaction (contains? (reagent.session/get type) "sl"))
         ;; Somali	so
-        so-ratom (reaction (contains? (reagent.session/get :target) "so"))
+        so-ratom (reaction (contains? (reagent.session/get type) "so"))
         ;; Spanish	es
-        es-ratom (reaction (contains? (reagent.session/get :target) "es"))
+        es-ratom (reaction (contains? (reagent.session/get type) "es"))
         ;; Sundanese	su
-        su-ratom (reaction (contains? (reagent.session/get :target) "su"))
+        su-ratom (reaction (contains? (reagent.session/get type) "su"))
         ;; Swahili	sw
-        sw-ratom (reaction (contains? (reagent.session/get :target) "sw"))
+        sw-ratom (reaction (contains? (reagent.session/get type) "sw"))
         ;; Swedish	sv
-        sv-ratom (reaction (contains? (reagent.session/get :target) "sv"))
+        sv-ratom (reaction (contains? (reagent.session/get type) "sv"))
 
         ;; Tajik	tg
-        tg-ratom (reaction (contains? (reagent.session/get :target) "tg"))
+        tg-ratom (reaction (contains? (reagent.session/get type) "tg"))
         ;; Tamil	ta
-        ta-ratom (reaction (contains? (reagent.session/get :target) "ta"))
+        ta-ratom (reaction (contains? (reagent.session/get type) "ta"))
         ;; Tatar tt
-        tt-ratom (reaction (contains? (reagent.session/get :target) "tt"))
+        tt-ratom (reaction (contains? (reagent.session/get type) "tt"))
         ;; Telugu	te
-        te-ratom (reaction (contains? (reagent.session/get :target) "te"))
+        te-ratom (reaction (contains? (reagent.session/get type) "te"))
         ;; Thai	th
-        th-ratom (reaction (contains? (reagent.session/get :target) "th"))
+        th-ratom (reaction (contains? (reagent.session/get type) "th"))
         ;; Turkish	tr
-        tr-ratom (reaction (contains? (reagent.session/get :target) "tr"))
+        tr-ratom (reaction (contains? (reagent.session/get type) "tr"))
         ;; Turkmen tk
-        tk-ratom (reaction (contains? (reagent.session/get :target) "tk"))
+        tk-ratom (reaction (contains? (reagent.session/get type) "tk"))
         ;; Ukrainian	uk
-        uk-ratom (reaction (contains? (reagent.session/get :target) "uk"))
+        uk-ratom (reaction (contains? (reagent.session/get type) "uk"))
         ;; Urdu	ur
-        ur-ratom (reaction (contains? (reagent.session/get :target) "ur"))
+        ur-ratom (reaction (contains? (reagent.session/get type) "ur"))
         ;; Uyghur ug
-        ug-ratom (reaction (contains? (reagent.session/get :target) "ug"))
+        ug-ratom (reaction (contains? (reagent.session/get type) "ug"))
         ;; Uzbek	uz
-        uz-ratom (reaction (contains? (reagent.session/get :target) "uz"))
+        uz-ratom (reaction (contains? (reagent.session/get type) "uz"))
 
         ;; Vietnamese	vi
-        vi-ratom (reaction (contains? (reagent.session/get :target) "vi"))
+        vi-ratom (reaction (contains? (reagent.session/get type) "vi"))
         ;; Welsh	cy
-        cy-ratom (reaction (contains? (reagent.session/get :target) "cy"))
+        cy-ratom (reaction (contains? (reagent.session/get type) "cy"))
 
 
         ;; Xhosa	xh
-        xh-ratom (reaction (contains? (reagent.session/get :target) "xh"))
+        xh-ratom (reaction (contains? (reagent.session/get type) "xh"))
         ;; Yiddish	yi
-        yi-ratom (reaction (contains? (reagent.session/get :target) "yi"))
+        yi-ratom (reaction (contains? (reagent.session/get type) "yi"))
         ;; Yoruba	yo
-        yo-ratom (reaction (contains? (reagent.session/get :target) "yo"))
+        yo-ratom (reaction (contains? (reagent.session/get type) "yo"))
         ;; Zulu	zu
-        zu-ratom (reaction (contains? (reagent.session/get :target) "zu"))
+        zu-ratom (reaction (contains? (reagent.session/get type) "zu"))
         ]
     [:table
      [:tbody
@@ -293,223 +287,223 @@
        [:td
         [recom/checkbox
          :model @af-ratom
-         :on-change (target-cb-handler-fn "af")
+         :on-change (cb-handler-fn type "af")
          :label [recom/label :label "Afrikaans" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @sq-ratom
-         :on-change (target-cb-handler-fn "sq")
+         :on-change (cb-handler-fn type "sq")
          :label [recom/label :label "Albanian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @am-ratom
-         :on-change (target-cb-handler-fn "am")
+         :on-change (cb-handler-fn type "am")
          :label [recom/label :label "Amharic" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ar-ratom
-         :on-change (target-cb-handler-fn "ar")
+         :on-change (cb-handler-fn type "ar")
          :label [recom/label :label "Arabic" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @hy-ratom
-         :on-change (target-cb-handler-fn "hy")
+         :on-change (cb-handler-fn type "hy")
          :label [recom/label :label "Armenian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @az-ratom
-         :on-change (target-cb-handler-fn "az")
+         :on-change (cb-handler-fn type "az")
          :label [recom/label :label "Azerbaijani" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @eu-ratom
-         :on-change (target-cb-handler-fn "eu")
+         :on-change (cb-handler-fn type "eu")
          :label [recom/label :label "Basque" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @be-ratom
-         :on-change (target-cb-handler-fn "be")
+         :on-change (cb-handler-fn type "be")
          :label [recom/label :label "Belarusian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @bn-ratom
-         :on-change (target-cb-handler-fn "bn")
+         :on-change (cb-handler-fn type "bn")
          :label [recom/label :label "Bengali" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @bs-ratom
-         :on-change (target-cb-handler-fn "bs")
+         :on-change (cb-handler-fn type "bs")
          :label [recom/label :label "Bosnian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @bg-ratom
-         :on-change (target-cb-handler-fn "bg")
+         :on-change (cb-handler-fn type "bg")
          :label [recom/label :label "Bulgarian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @ca-ratom
-         :on-change (target-cb-handler-fn "ca")
+         :on-change (cb-handler-fn type "ca")
          :label [recom/label :label "Catalan" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @eb-ratom
-         :on-change (target-cb-handler-fn "eb")
+         :on-change (cb-handler-fn type "eb")
          :label [recom/label :label "Cebuano" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ny-ratom
-         :on-change (target-cb-handler-fn "ny")
+         :on-change (cb-handler-fn type "ny")
          :label [recom/label :label "Chichewa" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @zh-CN-ratom
-         :on-change (target-cb-handler-fn "zh-CN")
+         :on-change (cb-handler-fn type "zh-CN")
          :label [recom/label :label "Chinese (Simplified)" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @zh-TW-ratom
-         :on-change (target-cb-handler-fn "zh-TW")
+         :on-change (cb-handler-fn type "zh-TW")
          :label [recom/label :label "Chinese (Traditional)" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @co-ratom
-         :on-change (target-cb-handler-fn "co")
+         :on-change (cb-handler-fn type "co")
          :label [recom/label :label "Corsican" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @hr-ratom
-         :on-change (target-cb-handler-fn "hr")
+         :on-change (cb-handler-fn type "hr")
          :label [recom/label :label "Croatian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @cs-ratom
-         :on-change (target-cb-handler-fn "cs")
+         :on-change (cb-handler-fn type "cs")
          :label [recom/label :label "Czech" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @da-ratom
-         :on-change (target-cb-handler-fn "da")
+         :on-change (cb-handler-fn type "da")
          :label [recom/label :label "Danish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @nl-ratom
-         :on-change (target-cb-handler-fn "nl")
+         :on-change (cb-handler-fn type "nl")
          :label [recom/label :label "Dutch" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @en-ratom
-         :on-change (target-cb-handler-fn "en")
+         :on-change (cb-handler-fn type "en")
          :label [recom/label :label "English" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @eo-ratom
-         :on-change (target-cb-handler-fn "eo")
+         :on-change (cb-handler-fn type "eo")
          :label [recom/label :label "Esperanto" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @et-ratom
-         :on-change (target-cb-handler-fn "et")
+         :on-change (cb-handler-fn type "et")
          :label [recom/label :label "Estonian" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @tl-ratom
-         :on-change (target-cb-handler-fn "tl")
+         :on-change (cb-handler-fn type "tl")
          :label [recom/label :label "Filipino" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @fi-ratom
-         :on-change (target-cb-handler-fn "fi")
+         :on-change (cb-handler-fn type "fi")
          :label [recom/label :label "Finnish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @fr-ratom
-         :on-change (target-cb-handler-fn "fr")
+         :on-change (cb-handler-fn type "fr")
          :label [recom/label :label "French" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @fy-ratom
-         :on-change (target-cb-handler-fn "fy")
+         :on-change (cb-handler-fn type "fy")
          :label [recom/label :label "Frisian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @gl-ratom
-         :on-change (target-cb-handler-fn "gl")
+         :on-change (cb-handler-fn type "gl")
          :label [recom/label :label "Galician" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ka-ratom
-         :on-change (target-cb-handler-fn "ka")
+         :on-change (cb-handler-fn type "ka")
          :label [recom/label :label "Georgian" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @de-ratom
-         :on-change (target-cb-handler-fn "de")
+         :on-change (cb-handler-fn type "de")
          :label [recom/label :label "German" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @el-ratom
-         :on-change (target-cb-handler-fn "el")
+         :on-change (cb-handler-fn type "el")
          :label [recom/label :label "Greek" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @gu-ratom
-         :on-change (target-cb-handler-fn "gu")
+         :on-change (cb-handler-fn type "gu")
          :label [recom/label :label "Gujarati" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ht-ratom
-         :on-change (target-cb-handler-fn "ht")
+         :on-change (cb-handler-fn type "ht")
          :label [recom/label :label "Haitian Creole" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ha-ratom
-         :on-change (target-cb-handler-fn "ha")
+         :on-change (cb-handler-fn type "ha")
          :label [recom/label :label "Hausa" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @haw-ratom
-         :on-change (target-cb-handler-fn "haw")
+         :on-change (cb-handler-fn type "haw")
          :label [recom/label :label "Hawaiian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @iw-ratom
-         :on-change (target-cb-handler-fn "iw")
+         :on-change (cb-handler-fn type "iw")
          :label [recom/label :label "Hebrew" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @hi-ratom
-         :on-change (target-cb-handler-fn "hi")
+         :on-change (cb-handler-fn type "hi")
          :label [recom/label :label "Hindi" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @hmn-ratom
-         :on-change (target-cb-handler-fn "hmn")
+         :on-change (cb-handler-fn type "hmn")
          :label [recom/label :label "Hmong" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @hu-ratom
-         :on-change (target-cb-handler-fn "hu")
+         :on-change (cb-handler-fn type "hu")
          :label [recom/label :label "Hungarian" :style {:margin-top "3px"}]]]
 
        ]
@@ -517,113 +511,113 @@
        [:td
         [recom/checkbox
          :model @is-ratom
-         :on-change (target-cb-handler-fn "is")
+         :on-change (cb-handler-fn type "is")
          :label [recom/label :label "Icelandic" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ig-ratom
-         :on-change (target-cb-handler-fn "ig")
+         :on-change (cb-handler-fn type "ig")
          :label [recom/label :label "Igbo" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @id-ratom
-         :on-change (target-cb-handler-fn "id")
+         :on-change (cb-handler-fn type "id")
          :label [recom/label :label "Indonesian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ga-ratom
-         :on-change (target-cb-handler-fn "ga")
+         :on-change (cb-handler-fn type "ga")
          :label [recom/label :label "Irish" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @it-ratom
-         :on-change (target-cb-handler-fn "it")
+         :on-change (cb-handler-fn type "it")
          :label [recom/label :label "Italian" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @ja-ratom
-         :on-change (target-cb-handler-fn "ja")
+         :on-change (cb-handler-fn type "ja")
          :label [recom/label :label "Japanese" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @jv-ratom
-         :on-change (target-cb-handler-fn "jv")
+         :on-change (cb-handler-fn type "jv")
          :label [recom/label :label "Javanese" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @kn-ratom
-         :on-change (target-cb-handler-fn "kn")
+         :on-change (cb-handler-fn type "kn")
          :label [recom/label :label "Kannada" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @kk-ratom
-         :on-change (target-cb-handler-fn "kk")
+         :on-change (cb-handler-fn type "kk")
          :label [recom/label :label "Kazakh" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @km-ratom
-         :on-change (target-cb-handler-fn "km")
+         :on-change (cb-handler-fn type "km")
          :label [recom/label :label "Khmer" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @rw-ratom
-         :on-change (target-cb-handler-fn "rw")
+         :on-change (cb-handler-fn type "rw")
          :label [recom/label :label "Kinyarwanda" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ko-ratom
-         :on-change (target-cb-handler-fn "ko")
+         :on-change (cb-handler-fn type "ko")
          :label [recom/label :label "Korean" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @ku-ratom
-         :on-change (target-cb-handler-fn "ku")
+         :on-change (cb-handler-fn type "ku")
          :label [recom/label :label "Kurdish (Kurmanji)" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ky-ratom
-         :on-change (target-cb-handler-fn "ky")
+         :on-change (cb-handler-fn type "ky")
          :label [recom/label :label "Kyrgyz" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @lo-ratom
-         :on-change (target-cb-handler-fn "lo")
+         :on-change (cb-handler-fn type "lo")
          :label [recom/label :label "Lao" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @la-ratom
-         :on-change (target-cb-handler-fn "la")
+         :on-change (cb-handler-fn type "la")
          :label [recom/label :label "Latin" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @lv-ratom
-         :on-change (target-cb-handler-fn "lv")
+         :on-change (cb-handler-fn type "lv")
          :label [recom/label :label "Latvian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @lt-ratom
-         :on-change (target-cb-handler-fn "lt")
+         :on-change (cb-handler-fn type "lt")
          :label [recom/label :label "Lithuanian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @lb-ratom
-         :on-change (target-cb-handler-fn "lb")
+         :on-change (cb-handler-fn type "lb")
          :label [recom/label :label "Luxembourgish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @mk-ratom
-         :on-change (target-cb-handler-fn "mk")
+         :on-change (cb-handler-fn type "mk")
          :label [recom/label :label "Macedonian" :style {:margin-top "3px"}]]]
 
        ]
@@ -631,187 +625,187 @@
        [:td
         [recom/checkbox
          :model @mg-ratom
-         :on-change (target-cb-handler-fn "mg")
+         :on-change (cb-handler-fn type "mg")
          :label [recom/label :label "Malagasy" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ms-ratom
-         :on-change (target-cb-handler-fn "ms")
+         :on-change (cb-handler-fn type "ms")
          :label [recom/label :label "Malay" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ml-ratom
-         :on-change (target-cb-handler-fn "ml")
+         :on-change (cb-handler-fn type "ml")
          :label [recom/label :label "Malayalam" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @mt-ratom
-         :on-change (target-cb-handler-fn "mt")
+         :on-change (cb-handler-fn type "mt")
          :label [recom/label :label "Maltese" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @mi-ratom
-         :on-change (target-cb-handler-fn "mi")
+         :on-change (cb-handler-fn type "mi")
          :label [recom/label :label "Maori" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @mr-ratom
-         :on-change (target-cb-handler-fn "mr")
+         :on-change (cb-handler-fn type "mr")
          :label [recom/label :label "Marathi" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @mn-ratom
-         :on-change (target-cb-handler-fn "mn")
+         :on-change (cb-handler-fn type "mn")
          :label [recom/label :label "Mongolian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @my-ratom
-         :on-change (target-cb-handler-fn "my")
+         :on-change (cb-handler-fn type "my")
          :label [recom/label :label "Myanmar" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @ne-ratom
-         :on-change (target-cb-handler-fn "ne")
+         :on-change (cb-handler-fn type "ne")
          :label [recom/label :label "Nepali" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @no-ratom
-         :on-change (target-cb-handler-fn "no")
+         :on-change (cb-handler-fn type "no")
          :label [recom/label :label "Norwegian (Bokmål)" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @or-ratom
-         :on-change (target-cb-handler-fn "or")
+         :on-change (cb-handler-fn type "or")
          :label [recom/label :label "Odia" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @ps-ratom
-         :on-change (target-cb-handler-fn "ps")
+         :on-change (cb-handler-fn type "ps")
          :label [recom/label :label "Pashto" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @fa-ratom
-         :on-change (target-cb-handler-fn "fa")
+         :on-change (cb-handler-fn type "fa")
          :label [recom/label :label "Persian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @pl-ratom
-         :on-change (target-cb-handler-fn "pl")
+         :on-change (cb-handler-fn type "pl")
          :label [recom/label :label "Polish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @pt-ratom
-         :on-change (target-cb-handler-fn "pt")
+         :on-change (cb-handler-fn type "pt")
          :label [recom/label :label "Portuguese" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @pa-ratom
-         :on-change (target-cb-handler-fn "pa")
+         :on-change (cb-handler-fn type "pa")
          :label [recom/label :label "Punjabi (Gurmukhi)" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @ro-ratom
-         :on-change (target-cb-handler-fn "ro")
+         :on-change (cb-handler-fn type "ro")
          :label [recom/label :label "Romanian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @ru-ratom
-         :on-change (target-cb-handler-fn "ru")
+         :on-change (cb-handler-fn type "ru")
          :label [recom/label :label "Russian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @sm-ratom
-         :on-change (target-cb-handler-fn "sm")
+         :on-change (cb-handler-fn type "sm")
          :label [recom/label :label "Samoan" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @gd-ratom
-         :on-change (target-cb-handler-fn "gd")
+         :on-change (cb-handler-fn type "gd")
          :label [recom/label :label "Scots Gaelic" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @sr-ratom
-         :on-change (target-cb-handler-fn "sr")
+         :on-change (cb-handler-fn type "sr")
          :label [recom/label :label "Serbian" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @st-ratom
-         :on-change (target-cb-handler-fn "st")
+         :on-change (cb-handler-fn type "st")
          :label [recom/label :label "Sesotho" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @sn-ratom
-         :on-change (target-cb-handler-fn "sn")
+         :on-change (cb-handler-fn type "sn")
          :label [recom/label :label "Shona" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @sd-ratom
-         :on-change (target-cb-handler-fn "sd")
+         :on-change (cb-handler-fn type "sd")
          :label [recom/label :label "Sindhi" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @si-ratom
-         :on-change (target-cb-handler-fn "si")
+         :on-change (cb-handler-fn type "si")
          :label [recom/label :label "Sinhala" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @sk-ratom
-         :on-change (target-cb-handler-fn "sk")
+         :on-change (cb-handler-fn type "sk")
          :label [recom/label :label "Slovak" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @sl-ratom
-         :on-change (target-cb-handler-fn "sl")
+         :on-change (cb-handler-fn type "sl")
          :label [recom/label :label "Slovenian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @so-ratom
-         :on-change (target-cb-handler-fn "so")
+         :on-change (cb-handler-fn type "so")
          :label [recom/label :label "Somali" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @es-ratom
-         :on-change (target-cb-handler-fn "es")
+         :on-change (cb-handler-fn type "es")
          :label [recom/label :label "Spanish" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @su-ratom
-         :on-change (target-cb-handler-fn "su")
+         :on-change (cb-handler-fn type "su")
          :label [recom/label :label "Sundanese" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @sw-ratom
-         :on-change (target-cb-handler-fn "sw")
+         :on-change (cb-handler-fn type "sw")
          :label [recom/label :label "Swahili" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @sv-ratom
-         :on-change (target-cb-handler-fn "sv")
+         :on-change (cb-handler-fn type "sv")
          :label [recom/label :label "Swedish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @tg-ratom
-         :on-change (target-cb-handler-fn "tg")
+         :on-change (cb-handler-fn type "tg")
          :label [recom/label :label "Tajik" :style {:margin-top "3px"}]]]
 
        ]
@@ -820,24 +814,24 @@
        [:td
         [recom/checkbox
          :model @ta-ratom
-         :on-change (target-cb-handler-fn "ta")
+         :on-change (cb-handler-fn type "ta")
          :label [recom/label :label "Tamil" :style {:margin-top "3px"}]]]
        ;; voice output unavailable for tator
        [:td
         [recom/checkbox
          :model @tt-ratom
-         :on-change (target-cb-handler-fn "tt")
+         :on-change (cb-handler-fn type "tt")
          :label [recom/label :label "Tatar" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @te-ratom
-         :on-change (target-cb-handler-fn "te")
+         :on-change (cb-handler-fn type "te")
          :label [recom/label :label "Telugu" :style {:margin-top "3px"}]]]
 
        [:td
         [recom/checkbox
          :model @th-ratom
-         :on-change (target-cb-handler-fn "th")
+         :on-change (cb-handler-fn type "th")
          :label [recom/label :label "Thai" :style {:margin-top "3px"}]]]
 
        ]
@@ -845,22 +839,22 @@
        [:td
         [recom/checkbox
          :model @tr-ratom
-         :on-change (target-cb-handler-fn "tr")
+         :on-change (cb-handler-fn type "tr")
          :label [recom/label :label "Turkish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @tk-ratom
-         :on-change (target-cb-handler-fn "tk")
+         :on-change (cb-handler-fn type "tk")
          :label [recom/label :label "Turkmen" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @uk-ratom
-         :on-change (target-cb-handler-fn "uk")
+         :on-change (cb-handler-fn type "uk")
          :label [recom/label :label "Ukrainian" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @ur-ratom
-         :on-change (target-cb-handler-fn "ur")
+         :on-change (cb-handler-fn type "ur")
          :label [recom/label :label "Urdu" :style {:margin-top "3px"}]]]
 
 
@@ -869,22 +863,22 @@
        [:td
         [recom/checkbox
          :model @ug-ratom
-         :on-change (target-cb-handler-fn "ug")
+         :on-change (cb-handler-fn type "ug")
          :label [recom/label :label "Uyghur" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @uz-ratom
-         :on-change (target-cb-handler-fn "uz")
+         :on-change (cb-handler-fn type "uz")
          :label [recom/label :label "Uzbek" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @vi-ratom
-         :on-change (target-cb-handler-fn "vi")
+         :on-change (cb-handler-fn type "vi")
          :label [recom/label :label "Vietnamese" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @cy-ratom
-         :on-change (target-cb-handler-fn "cy")
+         :on-change (cb-handler-fn type "cy")
          :label [recom/label :label "Welsh" :style {:margin-top "3px"}]]]
 
        ]
@@ -892,24 +886,24 @@
        [:td
         [recom/checkbox
          :model @xh-ratom
-         :on-change (target-cb-handler-fn "xh")
+         :on-change (cb-handler-fn type "xh")
          :label [recom/label :label "Xhosa" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @yi-ratom
-         :on-change (target-cb-handler-fn "yi")
+         :on-change (cb-handler-fn type "yi")
          :label [recom/label :label "Yiddish" :style {:margin-top "3px"}]]]
        [:td
         [recom/checkbox
          :model @yo-ratom
-         :on-change (target-cb-handler-fn "yo")
+         :on-change (cb-handler-fn type "yo")
          :label [recom/label :label "Yoruba" :style {:margin-top "3px"}]]]
        ]
       [:tr
        [:td
         [recom/checkbox
          :model @zu-ratom
-         :on-change (target-cb-handler-fn "zu")
+         :on-change (cb-handler-fn type "zu")
          :label [recom/label :label "Zulu" :style {:margin-top "3px"}]]]]
       ]
      ]
@@ -942,7 +936,7 @@
                         (= @auto-detect-ratom? false)
                         [recom/v-box
                          :children [[recom/p "Please select your input language"]
-                                    [lang-option-pane :target]]]
+                                    [lang-option-pane :source]]]
                         )
                   ]])))
 
@@ -989,6 +983,8 @@
     (prn "init reagent.session/state")
 
     (reagent.session/reset! (<! (storage/get-ui-state)))
+    ;; (reagent.session/reset! {:target #{}
+    ;;                          :source #{}})
     (prn ">> initial reagent.sesssion/state: " @reagent.session/state) ;;xxx
 
     (add-watch reagent.session/state :target

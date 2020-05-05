@@ -28,7 +28,8 @@
           (error "fetch key2 and key3 error:" error)
           (log "fetch key2 and key3:" items))))))
 
-(def default-state {:target #{}})
+(def default-state {:target #{}
+                    :source #{}})
 
 (defn get-ui-state []
   (go
