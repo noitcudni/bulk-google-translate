@@ -1,13 +1,16 @@
 (ns bulk-google-translate.popup.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [reagent.ratom :refer [reaction]])
-  (:require [cljs.core.async :refer [<!]]
+  (:require [cljs.core.async :refer [<! chan]]
             [reagent.core :as reagent :refer [atom]]
             [chromex.logging :refer-macros [log info warn error group group-end]]
             [chromex.protocols.chrome-port :refer [post-message!]]
+            [testdouble.cljs.csv :as csv]
             [re-com.core :as recom]
             [reagent.core :as reagent :refer [atom]]
             [reagent.session]
+            [domina.xpath :refer [xpath]]
+            [domina :refer [single-node nodes]]
             [bulk-google-translate.background.storage :as storage]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]))
 
@@ -976,7 +979,11 @@
   [recom/v-box
    :width "700px"
    :align :center
-   :children [[recom/h-box
+   :children [[:div {:style {:display "none"}}
+               [:input {:id "bulkCsvFileInput" :type "file"
+                        :on-change (fn [e]
+                                     )}]]
+              [recom/h-box
                :align :start
                :style {:padding "10px"}
                :children [[recom/button
@@ -987,9 +994,7 @@
                            :style {:width "200px"
                                    :background-color "#007bff"
                                    :color "white"}
-                           :on-click (fn [e]
-                                       ;; (go (<! (storage/get-ui-state)))
-                                       )]]]]
+                           :on-click (fn [e] (-> "//input[@id='bulkCsvFileInput']" xpath single-node .click))]]]]
    ])
 
 (defn current-page []
@@ -1008,6 +1013,13 @@
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
+(def upload-chan (chan 1 (map (fn [e]
+                                (let [target (.-currentTarget e)
+                                      file (-> target .-files (aget 0))]
+                                  (set! (.-value target) "")
+                                  file
+                                  )))))
+(def read-chan (chan 1 (map #(-> % .-target .-result js->clj))))
 
 (defn init! []
   (go
@@ -1024,6 +1036,22 @@
                  (prn "new-state: " new-state)
                  (storage/set-ui-state new-state)
                  ))
+
+    ;; handle onload
+    (go-loop []
+      (let [reader (js/FileReader.)
+            file (<! upload-chan)]
+        (set! (.-onload reader) #(put! read-chan %))
+        (.readAsText reader file)
+        (recur)))
+
+    ;; handle reading of the file
+    (go-loop []
+      (let [file-content (<! read-chan)
+            _ (prn "file-content: " (clojure.string/trim file-content))
+            ]
+        (recur)
+        ))
 
     (mount-root))
   )
