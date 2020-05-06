@@ -951,16 +951,40 @@
                                          )]])
                   ]])))
 
+(defn pane-2 []
+  (let []
+    (fn []
+      [recom/h-box
+       :children [[recom/v-box
+                   :width "700px"
+                   :align :start
+                   :children [[recom/p "Please select your target languages"]
+                              [lang-option-pane :target]]]
+
+                  [recom/box
+                   :align :center
+                   :child [recom/button
+                           :label "Next"
+                           :style {:height "500px"
+                                   :background-color "#28a745"
+                                   :color "white"}
+                           :on-click (fn [_]
+                                       (reagent.session/put! :curr-pane :step3)
+                                       )]]
+                  ]
+       ])))
+
+(defn pane-3 []
+  [:div "pane 3"])
+
 (defn current-page []
   (let [;;current-step-ratom (reagent/atom :step1)
         _ (reagent.session/put! :curr-pane :step1)
         ]
     (fn []
       (cond (= (reagent.session/get :curr-pane) :step1) [pane-1]
-            (= (reagent.session/get :curr-pane) :step2) [recom/v-box
-                                                         :width "700px"
-                                                         :align :center
-                                                         :children [[:div "world"]]]
+            (= (reagent.session/get :curr-pane) :step2) [pane-2]
+            (= (reagent.session/get :curr-pane) :step3) [pane-3]
             ))
 
     #_[recom/v-box
