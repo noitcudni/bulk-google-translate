@@ -1,7 +1,7 @@
 (ns bulk-google-translate.popup.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [reagent.ratom :refer [reaction]])
-  (:require [cljs.core.async :refer [<! chan]]
+  (:require [cljs.core.async :refer [<! chan put!] :as async]
             [reagent.core :as reagent :refer [atom]]
             [chromex.logging :refer-macros [log info warn error group group-end]]
             [chromex.protocols.chrome-port :refer [post-message!]]
@@ -13,6 +13,14 @@
             [domina :refer [single-node nodes]]
             [bulk-google-translate.background.storage :as storage]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]))
+
+(def upload-chan (chan 1 (map (fn [e]
+                                (let [target (.-currentTarget e)
+                                      file (-> target .-files (aget 0))]
+                                  (set! (.-value target) "")
+                                  file
+                                  )))))
+(def read-chan (chan 1 (map #(-> % .-target .-result js->clj))))
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
 
@@ -982,6 +990,7 @@
    :children [[:div {:style {:display "none"}}
                [:input {:id "bulkCsvFileInput" :type "file"
                         :on-change (fn [e]
+                                     (put! upload-chan e)
                                      )}]]
               [recom/h-box
                :align :start
@@ -1013,14 +1022,6 @@
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
-(def upload-chan (chan 1 (map (fn [e]
-                                (let [target (.-currentTarget e)
-                                      file (-> target .-files (aget 0))]
-                                  (set! (.-value target) "")
-                                  file
-                                  )))))
-(def read-chan (chan 1 (map #(-> % .-target .-result js->clj))))
-
 (defn init! []
   (go
     (log "POPUP: init")
