@@ -10,6 +10,7 @@
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [chromex.ext.downloads :refer-macros [download]]
+            [bulk-google-translate.content-script.common :as common]
             [bulk-google-translate.background.storage :as storage]
             ))
 
@@ -29,10 +30,13 @@
 ; -- client event loop ------------------------------------------------------------------------------------------------------
 
 (defn run-client-message-loop! [client]
-  (log "BACKGROUND: starting event loop for client:" (get-sender client))
+  (prn "BACKGROUND: starting event loop for client:" (get-sender client))
   (go-loop []
     (when-some [message (<! client)]
-      (log "BACKGROUND: got client message:" message "from" (get-sender client))
+      (prn  "BACKGROUND: got client message:" message "from" (get-sender client))
+      (let [{:keys [type]} (common/unmarshall message)]
+        (cond (= type :init-translations) (prn "background: init-translations")
+              ))
       (recur))
     (log "BACKGROUND: leaving event loop for client:" (get-sender client))
     (remove-client! client)))
@@ -41,7 +45,6 @@
 
 (defn handle-client-connection! [client]
   (add-client! client)
-  (post-message! client "hello from BACKGROUND PAGE!")
   (run-client-message-loop! client))
 
 (defn tell-clients-about-new-tab! []

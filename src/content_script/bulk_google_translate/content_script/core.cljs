@@ -23,19 +23,10 @@
 
 ; -- a simple page analysis  ------------------------------------------------------------------------------------------------
 
-(defn do-page-analysis! [background-port]
-  (let [script-elements (.getElementsByTagName js/document "script")
-        script-count (.-length script-elements)
-        title (.-title js/document)
-        msg (str "CONTENT SCRIPT: document '" title "' contains " script-count " script tags.")]
-    (log msg)
-    (post-message! background-port msg)))
-
 (defn connect-to-background-page! []
   (let [background-port (runtime/connect)]
-    (post-message! background-port "hello from CONTENT SCRIPT!")
-    (run-message-loop! background-port)
-    (do-page-analysis! background-port)))
+    ;; (post-message! background-port "hello from CONTENT SCRIPT!")
+    (run-message-loop! background-port)))
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
 (defn exec-translation []

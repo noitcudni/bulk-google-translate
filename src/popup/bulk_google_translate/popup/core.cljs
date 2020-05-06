@@ -12,6 +12,7 @@
             [domina.xpath :refer [xpath]]
             [domina :refer [single-node nodes]]
             [bulk-google-translate.background.storage :as storage]
+            [bulk-google-translate.content-script.common :as common]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]))
 
 (def upload-chan (chan 1 (map (fn [e]
@@ -35,10 +36,9 @@
       (recur))
     (log "POPUP: leaving message loop")))
 
-(defn connect-to-background-page! []
-  (let [background-port (runtime/connect)]
-    (post-message! background-port "hello from POPUP!")
-    (run-message-loop! background-port)))
+(defn connect-to-background-page! [background-port]
+  ;; (post-message! background-port "hello from POPUP!")
+  (run-message-loop! background-port))
 
 (defn cb-handler-fn [type iso]
   (fn [checked?]
@@ -1023,41 +1023,43 @@
 
 ; -- main entry point -------------------------------------------------------------------------------------------------------
 (defn init! []
-  (go
-    (log "POPUP: init")
-    (connect-to-background-page!)
-    (prn "init reagent.session/state")
+  (let [background-port (runtime/connect)]
+    (go
+      (log "POPUP: init")
+      (connect-to-background-page! background-port)
+      (prn "init reagent.session/state")
 
-    ;; (reagent.session/reset! (<! (storage/get-ui-state)))
-    (reagent.session/reset! {:target #{}
-                             :source #{}})
+      ;; (reagent.session/reset! (<! (storage/get-ui-state)))
+      (reagent.session/reset! {:target #{}
+                               :source #{}})
 
-    (add-watch reagent.session/state :target
-               (fn [key atom old-state new-state]
-                 (prn "new-state: " new-state)
-                 (storage/set-ui-state new-state)
-                 ))
+      (add-watch reagent.session/state :target
+                 (fn [key atom old-state new-state]
+                   (prn "new-state: " new-state)
+                   (storage/set-ui-state new-state)
+                   ))
 
-    ;; handle onload
-    (go-loop []
-      (let [reader (js/FileReader.)
-            file (<! upload-chan)]
-        (set! (.-onload reader) #(put! read-chan %))
-        (.readAsText reader file)
-        (recur)))
+      ;; handle onload
+      (go-loop []
+        (let [reader (js/FileReader.)
+              file (<! upload-chan)]
+          (set! (.-onload reader) #(put! read-chan %))
+          (.readAsText reader file)
+          (recur)))
 
-    ;; handle reading of the file
-    (go-loop []
-      (let [file-content (<! read-chan)
-            csv-data (->> (csv/read-csv (clojure.string/trim file-content))
-                          ;; trim off random whitespaces
-                          (map (fn [[word]]
-                                 (clojure.string/trim word)
-                                 )))
-            _ (prn csv-data)
-            ]
-        (recur)
-        ))
+      ;; handle reading of the file
+      (go-loop []
+        (let [file-content (<! read-chan)
+              csv-data (->> (csv/read-csv (clojure.string/trim file-content))
+                            ;; trim off random whitespaces
+                            (map (fn [[word]]
+                                   (clojure.string/trim word)
+                                   )))]
+          (post-message! background-port (common/marshall {:type :init-translations
+                                                           :data csv-data}))
 
-    (mount-root))
+          (recur)
+          ))
+
+      (mount-root)))
   )
