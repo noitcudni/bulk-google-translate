@@ -1049,7 +1049,12 @@
     ;; handle reading of the file
     (go-loop []
       (let [file-content (<! read-chan)
-            _ (prn "file-content: " (clojure.string/trim file-content))
+            csv-data (->> (csv/read-csv (clojure.string/trim file-content))
+                          ;; trim off random whitespaces
+                          (map (fn [[word]]
+                                 (clojure.string/trim word)
+                                 )))
+            _ (prn csv-data)
             ]
         (recur)
         ))
