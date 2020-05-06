@@ -937,17 +937,6 @@
                                 [recom/v-box
                                  :children [[recom/p "Please select your input language"]
                                             [lang-option-pane :source]]])
-
-                              #_(cond (= @auto-detect-ratom? true)
-                                    [recom/hyperlink
-                                     :label "Next >>"
-                                     :on-click (fn [] (prn "next >> clicked!"))]
-                                    ;; todo change it to source when it's ready
-                                    (= @auto-detect-ratom? false)
-                                    [recom/v-box
-                                     :children [[recom/p "Please select your input language"]
-                                                [lang-option-pane :source]]]
-                                    )
                               ]]
                   (when @display-next-ratom?
                     [recom/box
@@ -957,17 +946,22 @@
                              :style {:height "500px"
                                      :background-color "#28a745"
                                      :color "white"}
-                             :on-click (fn [e])]])
+                             :on-click (fn [_]
+                                         (reagent.session/put! :curr-pane :step2)
+                                         )]])
                   ]])))
 
 (defn current-page []
-  (let [current-step (reagent/atom :step1)]
-    (cond (= @current-step :step1) [pane-1]
-          (= @current-step :step2) [recom/v-box
-                                    :width "700px"
-                                    :align :center
-                                    :children [[:div "world"]]]
-          )
+  (let [;;current-step-ratom (reagent/atom :step1)
+        _ (reagent.session/put! :curr-pane :step1)
+        ]
+    (fn []
+      (cond (= (reagent.session/get :curr-pane) :step1) [pane-1]
+            (= (reagent.session/get :curr-pane) :step2) [recom/v-box
+                                                         :width "700px"
+                                                         :align :center
+                                                         :children [[:div "world"]]]
+            ))
 
     #_[recom/v-box
        :width "700px"
@@ -1005,7 +999,6 @@
     ;; (reagent.session/reset! (<! (storage/get-ui-state)))
     (reagent.session/reset! {:target #{}
                              :source #{}})
-    (prn ">> initial reagent.sesssion/state: " @reagent.session/state) ;;xxx
 
     (add-watch reagent.session/state :target
                (fn [key atom old-state new-state]
