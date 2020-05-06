@@ -11,6 +11,7 @@
                  [re-com "2.6.0"]
                  [testdouble/clojurescript.csv "0.4.5"]
                  [com.cognitect/transit-cljs "0.8.264"]
+                 [com.andrewmcveigh/cljs-time "0.5.2"]
                  [prismatic/dommy "1.1.0"]
                  [domina "1.0.3"]]
 

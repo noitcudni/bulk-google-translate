@@ -5,13 +5,13 @@
             [cljs.core.async :refer [<! chan]]
             [chromex.logging :refer-macros [log info warn error group group-end]]
             [chromex.chrome-event-channel :refer [make-chrome-event-channel]]
-            [chromex.protocols.chrome-port :refer [post-message! get-sender]]
+            [chromex.protocols.chrome-port :refer [on-disconnect! post-message! get-sender]]
             [chromex.ext.web-request :as web-request]
             [chromex.ext.tabs :as tabs]
             [chromex.ext.runtime :as runtime]
             [chromex.ext.downloads :refer-macros [download]]
             [bulk-google-translate.content-script.common :as common]
-            [bulk-google-translate.background.storage :as storage]
+            [bulk-google-translate.background.storage :refer [store-words!] :as storage]
             ))
 
 (def clients (atom []))
@@ -20,12 +20,35 @@
 
 (defn add-client! [client]
   (log "BACKGROUND: client connected" (get-sender client))
+  (on-disconnect! client (fn []
+                           ;; https://github.com/binaryage/chromex/blob/master/src/lib/chromex/protocols/chrome_port.cljs
+                           (prn "on disconnect callback !!!")
+                           ;; cleanup
+                           (swap! clients (fn [curr c] (->> curr (remove #(= % c)))) client)))
   (swap! clients conj client))
 
 (defn remove-client! [client]
   (log "BACKGROUND: client disconnected" (get-sender client))
   (let [remove-item (fn [coll item] (remove #(identical? item %) coll))]
     (swap! clients remove-item client)))
+
+(defn popup-predicate [client]
+  (re-find #"popup.html" (-> client
+                             get-sender
+                             js->clj
+                             (get "url"))))
+
+(defn get-popup-client []
+  (->> @clients
+       (filter popup-predicate)
+       first ;;this should only be one popup
+       ))
+
+(defn get-content-client []
+  (->> @clients
+       (filter (complement popup-predicate))
+       first ;;this should only be one popup
+       ))
 
 ; -- client event loop ------------------------------------------------------------------------------------------------------
 
@@ -34,8 +57,10 @@
   (go-loop []
     (when-some [message (<! client)]
       (prn  "BACKGROUND: got client message:" message "from" (get-sender client))
-      (let [{:keys [type]} (common/unmarshall message)]
-        (cond (= type :init-translations) (prn "background: init-translations")
+      (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
+        (cond (= type :init-translations) (do (prn "background: init-translations")
+                                              (store-words! whole-edn)
+                                              )
               ))
       (recur))
     (log "BACKGROUND: leaving event loop for client:" (get-sender client))
