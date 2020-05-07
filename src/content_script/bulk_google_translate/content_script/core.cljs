@@ -10,14 +10,13 @@
             [domina.xpath :refer [xpath]]
             ))
 
-(defn exec-translation []
+(defn exec-translation [source target word]
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
-
+  ;; TODO: need to loop thru target
   (let [_ (prn ">> calling exec-translation")
-        input "https://translate.google.com/#view=home&op=translate&sl=zh-CN&tl=en&text=錐"
+        input (str "https://translate.google.com/#view=home&op=translate&sl=" source "&tl=" target "&text=" word)
         _ (set! (.. js/window -location -href) input)]
-
     (go
       (<! (async/timeout 2000))
       (let [_ (prn ">> terse translation" (dommy/text (sel1 ".translation")))
@@ -37,7 +36,8 @@
                                              (post-message! chan (common/marshall {:type :next-word}))
                                              )
           (= type :translate) (do (prn "handling :translate : " whole-msg)
-                                  )
+                                  (let [{:keys [word source target]} whole-msg]
+                                    (exec-translation source target word)))
           )))
 
 (defn run-message-loop! [message-channel]

@@ -12,6 +12,7 @@
             [chromex.ext.downloads :refer-macros [download]]
             [bulk-google-translate.content-script.common :as common]
             [bulk-google-translate.background.storage :refer [store-words! next-word] :as storage]
+            [reagent.session]
             ))
 
 (def clients (atom []))
@@ -68,6 +69,8 @@
                 (post-message! client
                                (common/marshall {:type :translate
                                                  :word word
+                                                 :source (reagent.session/get! :source)
+                                                 :target (reagent.session/get! :target)
                                                  })))
 
             ))))
@@ -80,6 +83,8 @@
       (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
         (cond (= type :init-translations) (do (prn "background: init-translations")
                                               (<! (store-words! whole-edn))
+                                              (reagent.session/put! :source (:source whole-edn))
+                                              (reagent.session/put! :target (:target whole-edn))
                                               (post-message! (get-content-client) (common/marshall {:type :done-init-translations}))
                                               )
               (= type :next-word) (do

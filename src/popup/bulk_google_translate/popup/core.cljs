@@ -1035,10 +1035,10 @@
 
       (storage/clear-words!)
 
-      #_(add-watch reagent.session/state :target
+      (add-watch reagent.session/state :target
                  (fn [key atom old-state new-state]
                    (prn "new-state: " new-state)
-                   (storage/set-ui-state new-state)
+                   ;; (storage/set-ui-state new-state)
                    ))
 
       ;; handle onload
@@ -1058,7 +1058,10 @@
                                    (clojure.string/trim word)
                                    )))]
           (post-message! background-port (common/marshall {:type :init-translations
-                                                           :data csv-data}))
+                                                           :data csv-data
+                                                           :source (first(reagent.session/get :source))
+                                                           :target (reagent.session/get :target)
+                                                           }))
 
           (recur)
           ))
