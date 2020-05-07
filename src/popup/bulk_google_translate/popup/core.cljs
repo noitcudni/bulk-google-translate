@@ -1033,7 +1033,9 @@
       (reagent.session/reset! {:target #{}
                                :source #{}})
 
-      (add-watch reagent.session/state :target
+      (storage/clear-words!)
+
+      #_(add-watch reagent.session/state :target
                  (fn [key atom old-state new-state]
                    (prn "new-state: " new-state)
                    (storage/set-ui-state new-state)

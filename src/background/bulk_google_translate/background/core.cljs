@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [goog.string :as gstring]
             [goog.string.format]
-            [cljs.core.async :refer [<! chan]]
+            [cljs.core.async :refer [<! chan >!]]
             [chromex.logging :refer-macros [log info warn error group group-end]]
             [chromex.chrome-event-channel :refer [make-chrome-event-channel]]
             [chromex.protocols.chrome-port :refer [on-disconnect! post-message! get-sender]]
@@ -11,7 +11,7 @@
             [chromex.ext.runtime :as runtime]
             [chromex.ext.downloads :refer-macros [download]]
             [bulk-google-translate.content-script.common :as common]
-            [bulk-google-translate.background.storage :refer [store-words!] :as storage]
+            [bulk-google-translate.background.storage :refer [store-words! next-word] :as storage]
             ))
 
 (def clients (atom []))
@@ -51,6 +51,26 @@
        ))
 
 ; -- client event loop ------------------------------------------------------------------------------------------------------
+(defn fetch-next-word [client]
+  (go
+    (let [_ (prn "inside fetch-next-word")
+          [word word-entry] (<! (next-word))
+          _ (prn "BACKGROUND: word: " word)
+          _ (prn "BACKGROUND: word-entry: " word-entry)]
+      (cond (= word storage/*DONE-FLAG*)
+            (do
+              (post-message! (get-popup-client)
+                             (common/marshall {:type :done}))
+              (post-message! client
+                             (common/marshall {:type :done})))
+            (and word word-entry)
+            (do (prn "fetch-next-word: " word)
+                (post-message! client
+                               (common/marshall {:type :translate
+                                                 :word word
+                                                 })))
+
+            ))))
 
 (defn run-client-message-loop! [client]
   (prn "BACKGROUND: starting event loop for client:" (get-sender client))
@@ -59,8 +79,12 @@
       (prn  "BACKGROUND: got client message:" message "from" (get-sender client))
       (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
         (cond (= type :init-translations) (do (prn "background: init-translations")
-                                              (store-words! whole-edn)
+                                              (<! (store-words! whole-edn))
+                                              (post-message! (get-content-client) (common/marshall {:type :done-init-translations}))
                                               )
+              (= type :next-word) (do
+                                    (prn "handling :next-word")
+                                    (<! (fetch-next-word client)))
               ))
       (recur))
     (log "BACKGROUND: leaving event loop for client:" (get-sender client))

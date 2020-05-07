@@ -1,6 +1,6 @@
 (ns bulk-google-translate.background.storage
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [cljs.core.async :refer [<! chan >!]]
+  (:require [cljs.core.async :refer [<! chan >! close!]]
             [cljs-time.core :as t]
             [cljs-time.coerce :as tc]
             [chromex.logging :refer-macros [log info warn error group group-end]]
@@ -38,11 +38,9 @@
 (defn store-words!
   [{:keys [data]}]
   (let [local-storage (storage/get-local)
-        data (concat data [["poison-pill" *DONE-FLAG*]])
-        _ (prn "store-words data: " data)]
+        words (concat data '(*DONE-FLAG*))]
     (go-loop [[word & more] data
-              idx 0
-              ]
+              idx 0]
       (if (nil? word)
         (prn "DONE storing source words")
         (let [[[items] error] (<! (storage-area/get local-storage word))]
@@ -54,6 +52,72 @@
                 (recur more (inc idx)))
             )))
       )))
+
+(defn current-translation-attempt
+  []
+  (let [local-storage (storage/get-local)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))]
+        (->> items
+             js->clj
+             (filter (fn [[k v]]
+                       (= "translating" (get v "status"))))
+             first)
+        ))
+    ))
+
+(defn update-storage [word & args]
+  {:pre [(even? (count args))]}
+  (let [kv-pairs (partition 2 args)
+        local-storage (storage/get-local)
+        ch (chan)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage word))]
+        (if error
+          (error (str "fetching " word ":") error)
+          (let [entry (->> (js->clj items) vals first)
+                r {word (->> kv-pairs
+                            (reduce (fn [accum [k v]]
+                                      (assoc accum k v))
+                                    entry))
+                   }]
+            (storage-area/set local-storage (clj->js r))
+            (>! ch r)
+            ))))
+    ch))
+
+(defn fresh-new-translation []
+  (let [local-storage (storage/get-local)
+        ch (chan)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))
+            [word word-entry] (->> (or items '())
+                                   js->clj
+                                   (filter (fn [[k v]]
+                                             (let [status (get v "status")]
+                                               (= "pending" status))))
+                                   (sort-by (fn [[_ v]] (get v "idx")))
+                                   first)
+            _ (when-not (nil? word-entry) (<! (update-storage word "status" "translating")))
+            word-data (<! (current-translation-attempt))]
+        (if (nil? word-data)
+          (close! ch)
+          (>! ch word-data))
+        ))
+    ch))
+
+(defn next-word []
+  (let [ch (chan)]
+    (go
+      (let [word-data (<! (current-translation-attempt))
+            word-data (if (empty? word-data)
+                        (<! (fresh-new-translation))
+                        word-data)]
+        (if (nil? word-data)
+          (close! ch)
+          (>! ch word-data))))
+    ch
+    ))
 
 (defn get-ui-state []
   (go
@@ -75,6 +139,6 @@
     (storage-area/set local-storage #js{"ui-state" (transit/write w new-state)})
     ))
 
-(defn clear-victims! []
+(defn clear-words! []
   (let [local-storage (storage/get-local)]
     (storage-area/clear local-storage)))
