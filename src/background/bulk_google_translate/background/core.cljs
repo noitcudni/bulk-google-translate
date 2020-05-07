@@ -13,6 +13,7 @@
             [bulk-google-translate.content-script.common :as common]
             [bulk-google-translate.background.storage :refer [store-words! next-word] :as storage]
             [reagent.session]
+            [cemerick.url :refer [url]]
             ))
 
 (def clients (atom []))
@@ -110,18 +111,11 @@
 
 (defn download-audio [url]
   (go
-    (let [;resp (<! (http/get url))
-          ;; data-blob (js/Blob. (clj->js [(:body resp)])
-          ;;                     (clj->js {:type "audio/mpeg-3"}))
-          ;; url (js/URL.createObjectURL data-blob)
-          ]
+    (let [word (-> url cemerick.url/url :query (get "q"))]
       (download (clj->js {:url url
-                          :filename "zhui1.mp3"
+                          :filename (str word ".mp3")
                           :saveAs false
                           }))
-      ;; (prn ">> audio: " (:body resp))
-      ;; (:body resp)
-
       )))
 
 (defn process-chrome-event [event-num event]
