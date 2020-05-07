@@ -28,6 +28,12 @@
           (.dispatchEvent mouse-up-evt)))
       )))
 
+(defn batch-exec-translation [source targets word]
+  (loop [[curr & more] targets]
+    (when-not (nil? curr)
+      (exec-translation source curr word)
+      (recur (rest targets)))))
+
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
 (defn process-message! [chan message]
   (let [_ (log "CONTENT SCRIPT: got message:" message)
@@ -37,7 +43,7 @@
                                              )
           (= type :translate) (do (prn "handling :translate : " whole-msg)
                                   (let [{:keys [word source target]} whole-msg]
-                                    (exec-translation source target word)))
+                                    (batch-exec-translation source target word)))
           )))
 
 (defn run-message-loop! [message-channel]
