@@ -13,7 +13,8 @@
 (defn exec-translation [source target word]
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
-  ;; TODO: need to loop thru target
+  ;; TODO: download the audio only once.
+  ;; Don't proceed until the audio is downloaded
   (let [_ (prn ">> calling exec-translation")
         input (str "https://translate.google.com/#view=home&op=translate&sl=" source "&tl=" target "&text=" word)
         _ (set! (.. js/window -location -href) input)]
@@ -25,14 +26,18 @@
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
         (doto play-btn
           (.dispatchEvent mouse-down-evt)
-          (.dispatchEvent mouse-up-evt)))
+          (.dispatchEvent mouse-up-evt))
+        true)
       )))
 
 (defn batch-exec-translation [source targets word]
-  (loop [[curr & more] targets]
-    (when-not (nil? curr)
-      (exec-translation source curr word)
-      (recur (rest targets)))))
+  (go
+    (loop [[curr & more] targets]
+      (if-not (nil? curr)
+        (do (<! (exec-translation source curr word))
+            (recur (rest targets)))
+        true
+        ))))
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
 (defn process-message! [chan message]
@@ -43,7 +48,15 @@
                                              )
           (= type :translate) (do (prn "handling :translate : " whole-msg)
                                   (let [{:keys [word source target]} whole-msg]
-                                    (batch-exec-translation source target word)))
+                                    (go
+                                      ;; TODO how to handle erroring out of batch-exec-translation
+                                      (<! (batch-exec-translation source target word))
+                                      (prn "after batch-exec-translation:")
+                                      ;; (post-message! chan (common/marshall {:type :success :word word}))
+                                      )))
+          (= type :audio-downloaded) (do (prn "handling :audio-downloaded")
+                                         (let [{:keys [word]} whole-msg]
+                                           (post-message! chan (common/marshall {:type :success :word word}))))
           )))
 
 (defn run-message-loop! [message-channel]

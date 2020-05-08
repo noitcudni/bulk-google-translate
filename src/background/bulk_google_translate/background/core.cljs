@@ -11,7 +11,9 @@
             [chromex.ext.runtime :as runtime]
             [chromex.ext.downloads :refer-macros [download]]
             [bulk-google-translate.content-script.common :as common]
-            [bulk-google-translate.background.storage :refer [store-words! next-word] :as storage]
+            [bulk-google-translate.background.storage :refer [store-words! next-word update-storage] :as storage]
+            [cljs-time.core :as tt]
+            [cljs-time.coerce :as tc]
             [reagent.session]
             [cemerick.url :refer [url]]
             ))
@@ -70,10 +72,9 @@
                 (post-message! client
                                (common/marshall {:type :translate
                                                  :word word
-                                                 :source (reagent.session/get! :source)
-                                                 :target (reagent.session/get! :target)
+                                                 :source (reagent.session/get :source)
+                                                 :target (reagent.session/get :target)
                                                  })))
-
             ))))
 
 (defn run-client-message-loop! [client]
@@ -91,6 +92,15 @@
               (= type :next-word) (do
                                     (prn "handling :next-word")
                                     (<! (fetch-next-word client)))
+              (= type :success) (go
+                                  (prn "handling success!! :" whole-edn)
+                                  (let [{:keys [word]} whole-edn]
+                                    (<! (update-storage word
+                                                        "status" "translated"
+                                                        "translated-ts" (tc/to-long (tt/now))))
+                                    (prn "handling success: done with update-storage")
+                                    (<! (fetch-next-word client)))
+                                  )
               ))
       (recur))
     (log "BACKGROUND: leaving event loop for client:" (get-sender client))
@@ -109,9 +119,12 @@
 ; -- main event loop --------------------------------------------------------------------------------------------------------
 (def download-history (atom #{}))
 
+(defn url->word [url]
+  (-> url cemerick.url/url :query (get "q")))
+
 (defn download-audio [url]
   (go
-    (let [word (-> url cemerick.url/url :query (get "q"))]
+    (let [word (url->word url)]
       (download (clj->js {:url url
                           :filename (str word ".mp3")
                           :saveAs false
@@ -129,7 +142,21 @@
                                                js->clj
                                                (get "url"))
                                        ]
-                                   (when (and (clojure.string/includes? url "translate_tts")
+                                   (when (clojure.string/includes? url "translate_tts")
+                                     (if (not (contains? @download-history url))
+                                       (do
+                                         (prn ">> event-args" event-args)
+                                         (prn ">> url: " url)
+                                         (swap! download-history conj url)
+                                         (download-audio url)
+                                         (post-message! (get-content-client)
+                                                        (common/marshall {:type :audio-downloaded
+                                                                          :word (url->word url)})))
+                                       (post-message! (get-content-client)
+                                                      (common/marshall {:type :audio-downloaded
+                                                                        :word (url->word url)}))))
+
+                                   #_(when (and (clojure.string/includes? url "translate_tts")
                                               (not (contains? @download-history url)))
                                      (prn ">> event-args" event-args)
                                      (prn ">> url: " url)
