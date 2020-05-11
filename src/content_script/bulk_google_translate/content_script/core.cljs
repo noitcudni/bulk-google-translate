@@ -6,8 +6,10 @@
             [chromex.ext.runtime :as runtime :refer-macros [connect]]
             [dommy.core :refer-macros [sel sel1] :as dommy]
             [domina :refer [single-node nodes style styles]]
+            [domina.css]
             [bulk-google-translate.content-script.common :as common]
             [domina.xpath :refer [xpath]]
+            [goog.dom :as dom]
             ))
 
 (defn exec-translation [source target word]
@@ -20,7 +22,57 @@
         _ (set! (.. js/window -location -href) input)]
     (go
       (<! (async/timeout 2000))
-      (let [_ (prn ">> terse translation" (dommy/text (sel1 ".translation")))
+      (let [terse-translation (dommy/text (sel1 ".translation"))
+            _ (prn ">> terse-translation: " terse-translation)
+            ;; detail-translation-rows (sel [".gt-baf-table " " tr"])
+            ;; _ (prn ">> detail-translation-rows: " detail-translation-rows)
+            ;; rows (nodes (xpath "//table[@class='gt-baf-table']//tr"))
+            _ (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
+                   reverse
+                   (map-indexed (fn [i n]
+                                  (let [cell (dom/getElementsByTagNameAndClass "div" "gt-baf-cell" n)
+                                        _ (prn "row: " i " | cell: " cell)
+                                        _ (prn "count: "(count cell))
+                                        _ (prn "first cell: "(first cell))
+                                        header-cell (dom/getElementByClass "gt-cd-pos" (first cell))
+                                        ]
+                                    (if-not (nil? header-cell)
+                                      ;; header
+                                      (prn "text: " (dom/getTextContent header-cell))
+                                      (let [detailed-translation (dom/getElementByClass "gt-baf-word-clickable" (first cell))
+                                            source-lang-words (dom/getElementsByClass "gt-baf-back" (second cell))
+                                            _ (prn "translation: " (dom/getTextContent detailed-translation))
+                                            _ (->> source-lang-words
+                                                   (mapv (fn [n]
+                                                           (prn "word: "(dom/getTextContent n))))
+                                                   )
+                                            ]
+                                        )
+                                      )
+                                    )
+                                  ))
+                   (into [])
+                   )
+
+            ;; _ (->> rows
+            ;;        reverse
+            ;;        (map-indexed (fn [idx row]
+            ;;                       (let [cells (nodes (xpath row "//div[contains(@class, 'gt-baf-cell')]"))]
+            ;;                         (->> cells
+            ;;                              reverse
+            ;;                              (mapv (fn [cell]
+            ;;                                      (prn "row-idx: " idx " | cell: " (dommy/text cell))
+            ;;                                      ))
+            ;;                              )
+            ;;                         )
+            ;;                       ))
+            ;;        (into [])
+            ;;        )
+
+            ;; gt-baf-table ;; detail translation
+            ;; verb|adjective|etc. //div[contains(@class, 'gt-baf-pos-head')//span[contains(@class, 'gt-cd-pos')]
+            ;; first-col table.gt-baf-table//tr.gt-baf-entry//div[gt-baf-term-text-parent]
+            ;; second-col table.gt-baf-table//tr.gt-baf-entry//div[gt-baf-translations]
             play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
@@ -80,4 +132,4 @@
 (defn init! []
   (log "CONTENT SCRIPT: init")
   (connect-to-background-page!)
-  #_(exec-translation))
+  (exec-translation "zh-CN" "en" "錐"))
