@@ -27,47 +27,34 @@
             ;; detail-translation-rows (sel [".gt-baf-table " " tr"])
             ;; _ (prn ">> detail-translation-rows: " detail-translation-rows)
             ;; rows (nodes (xpath "//table[@class='gt-baf-table']//tr"))
-            _ (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
-                   reverse
-                   (map-indexed (fn [i n]
-                                  (let [cell (dom/getElementsByTagNameAndClass "div" "gt-baf-cell" n)
-                                        _ (prn "row: " i " | cell: " cell)
-                                        _ (prn "count: "(count cell))
-                                        _ (prn "first cell: "(first cell))
-                                        header-cell (dom/getElementByClass "gt-cd-pos" (first cell))
-                                        ]
-                                    (if-not (nil? header-cell)
-                                      ;; header
-                                      (prn "text: " (dom/getTextContent header-cell))
-                                      (let [detailed-translation (dom/getElementByClass "gt-baf-word-clickable" (first cell))
-                                            source-lang-words (dom/getElementsByClass "gt-baf-back" (second cell))
-                                            _ (prn "translation: " (dom/getTextContent detailed-translation))
-                                            _ (->> source-lang-words
-                                                   (mapv (fn [n]
-                                                           (prn "word: "(dom/getTextContent n))))
-                                                   )
-                                            ]
-                                        )
-                                      )
-                                    )
-                                  ))
-                   (into [])
-                   )
 
-            ;; _ (->> rows
+            ;; _ (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
             ;;        reverse
-            ;;        (map-indexed (fn [idx row]
-            ;;                       (let [cells (nodes (xpath row "//div[contains(@class, 'gt-baf-cell')]"))]
-            ;;                         (->> cells
-            ;;                              reverse
-            ;;                              (mapv (fn [cell]
-            ;;                                      (prn "row-idx: " idx " | cell: " (dommy/text cell))
-            ;;                                      ))
-            ;;                              )
-            ;;                         )
-            ;;                       ))
+            ;;        (map (fn [n]
+            ;;               (dom/getElementsByTagNameAndClass "div" "gt-baf-cell" n)
+            ;;               ))
+            ;;        (partition-by #(= 1 (count %)))
             ;;        (into [])
             ;;        )
+
+            parsed-data (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
+                             reverse
+                             (map #(dom/getElementsByTagNameAndClass "div" "gt-baf-cell" %))
+                             (reduce (fn [accum cells]
+                                       (if-let [header-cell (dom/getElementByClass "gt-cd-pos" (first cells))]
+                                         ;; header
+                                         (conj accum {(dom/getTextContent header-cell) []})
+                                         ;; details
+                                         (let [detailed-translation (dom/getElementByClass "gt-baf-word-clickable" (first cells))
+                                               source-lang-words (dom/getElementsByClass "gt-baf-back" (second cells))
+                                               k (->> accum last keys first)]
+                                           (conj (->> accum
+                                                      butlast
+                                                      (into []))
+                                                 (update (last accum) k conj {(dom/getTextContent detailed-translation)
+                                                                              (->> source-lang-words (mapv #(dom/getTextContent %)))}))
+                                           ))) []))
+            _ (prn "parsed-data: " parsed-data)
 
             ;; gt-baf-table ;; detail translation
             ;; verb|adjective|etc. //div[contains(@class, 'gt-baf-pos-head')//span[contains(@class, 'gt-cd-pos')]
@@ -132,4 +119,5 @@
 (defn init! []
   (log "CONTENT SCRIPT: init")
   (connect-to-background-page!)
-  (exec-translation "zh-CN" "en" "錐"))
+  ;; (exec-translation "zh-CN" "en" "母親節擁抱老媽安全嗎")
+  )
