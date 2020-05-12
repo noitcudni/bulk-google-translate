@@ -86,8 +86,8 @@
         ny-ratom (reaction (contains? (reagent.session/get type) "ny"))
         ;; Chinese (Simplified)	zh-CN
         zh-CN-ratom (reaction (contains? (reagent.session/get type) "zh-CN"))
-        ;; Chinese (Traditional)	zh-TW
-        zh-TW-ratom (reaction (contains? (reagent.session/get type) "zh-TW"))
+        ;; ;; Chinese (Traditional)	zh-TW
+        ;; zh-TW-ratom (reaction (contains? (reagent.session/get type) "zh-TW"))
         ;; Corsican	co
         co-ratom (reaction (contains? (reagent.session/get type) "co"))
         ;; Croatian	hr
@@ -378,7 +378,7 @@
          :label [recom/label :label "Chinese (Simplified)" :style {:margin-top "3px"}]]]
        ]
       [:tr
-       [:td
+       #_[:td
         [recom/checkbox
          :model @zh-TW-ratom
          :on-change (cb-handler-fn type "zh-TW")

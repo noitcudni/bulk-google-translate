@@ -24,19 +24,6 @@
       (<! (async/timeout 2000))
       (let [terse-translation (dommy/text (sel1 ".translation"))
             _ (prn ">> terse-translation: " terse-translation)
-            ;; detail-translation-rows (sel [".gt-baf-table " " tr"])
-            ;; _ (prn ">> detail-translation-rows: " detail-translation-rows)
-            ;; rows (nodes (xpath "//table[@class='gt-baf-table']//tr"))
-
-            ;; _ (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
-            ;;        reverse
-            ;;        (map (fn [n]
-            ;;               (dom/getElementsByTagNameAndClass "div" "gt-baf-cell" n)
-            ;;               ))
-            ;;        (partition-by #(= 1 (count %)))
-            ;;        (into [])
-            ;;        )
-
             parsed-data (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
                              reverse
                              (map #(dom/getElementsByTagNameAndClass "div" "gt-baf-cell" %))
@@ -56,10 +43,6 @@
                                            ))) []))
             _ (prn "parsed-data: " parsed-data)
 
-            ;; gt-baf-table ;; detail translation
-            ;; verb|adjective|etc. //div[contains(@class, 'gt-baf-pos-head')//span[contains(@class, 'gt-cd-pos')]
-            ;; first-col table.gt-baf-table//tr.gt-baf-entry//div[gt-baf-term-text-parent]
-            ;; second-col table.gt-baf-table//tr.gt-baf-entry//div[gt-baf-translations]
             play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
