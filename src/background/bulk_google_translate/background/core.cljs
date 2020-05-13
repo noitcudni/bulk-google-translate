@@ -63,6 +63,7 @@
           _ (prn "BACKGROUND: word-entry: " word-entry)]
       (cond (= word storage/*DONE-FLAG*)
             (do
+              (reagent.session/put! :my-status :done)
               (post-message! (get-popup-client)
                              (common/marshall {:type :done}))
               (post-message! client
@@ -87,6 +88,7 @@
                                               (<! (store-words! whole-edn))
                                               (reagent.session/put! :source (:source whole-edn))
                                               (reagent.session/put! :target (:target whole-edn))
+                                              (reagent.session/put! :my-status :running)
                                               (post-message! (get-content-client) (common/marshall {:type :done-init-translations}))
                                               )
               (= type :next-word) (do
@@ -140,33 +142,33 @@
     (case event-id
       ::runtime/on-connect (apply handle-client-connection! event-args)
       ::tabs/on-created (tell-clients-about-new-tab!)
-      ::web-request/on-completed (let [url (-> event-args
-                                               first
-                                               js->clj
-                                               (get "url"))
-                                       ]
-                                   (cond (clojure.string/includes? url "translate_tts")
-                                         (if (not (contains? @download-history url))
-                                           (do
-                                             (prn ">> event-args" event-args)
-                                             (prn ">> url: " url)
-                                             (swap! download-history conj url)
-                                             (download-audio url)
+      ::web-request/on-completed (when (= :running (reagent.session/get :my-status))
+                                   (let [url (-> event-args
+                                                 first
+                                                 js->clj
+                                                 (get "url"))]
+                                     (cond (clojure.string/includes? url "translate_tts")
+                                           (if (not (contains? @download-history url))
+                                             (do
+                                               (prn ">> event-args" event-args)
+                                               (prn ">> url: " url)
+                                               (swap! download-history conj url)
+                                               (download-audio url)
+                                               (post-message! (get-content-client)
+                                                              (common/marshall {:type :audio-downloaded
+                                                                                :word (url->word url)})))
                                              (post-message! (get-content-client)
                                                             (common/marshall {:type :audio-downloaded
                                                                               :word (url->word url)})))
-                                           (post-message! (get-content-client)
-                                                          (common/marshall {:type :audio-downloaded
-                                                                            :word (url->word url)})))
 
-                                         (clojure.string/includes? (-> (cemerick.url/url url)
-                                                                       :path)
-                                                                   "single")
-                                         (post-message! (get-content-client)
-                                                        (common/marshall {:type :done-translating
-                                                                          :word (url->word url)
-                                                                          :tl (url->tl url)}))
-                                         ))
+                                           (clojure.string/includes? (-> (cemerick.url/url url)
+                                                                         :path)
+                                                                     "single")
+                                           (post-message! (get-content-client)
+                                                          (common/marshall {:type :done-translating
+                                                                            :word (url->word url)
+                                                                            :tl (url->tl url)}))
+                                           )))
       nil)))
 
 (defn run-chrome-event-loop! [chrome-event-channel]
@@ -188,4 +190,5 @@
 
 (defn init! []
   (prn "BACKGROUND: init")
+  (reagent.session/put! :my-status :done)
   (boot-chrome-event-loop!))

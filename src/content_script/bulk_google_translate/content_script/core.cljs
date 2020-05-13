@@ -30,7 +30,7 @@
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
   ;; TODO: download the audio only once.
   ;; Don't proceed until the audio is downloaded
-  (let [_ (prn ">> calling exec-translation : target: " target)
+  (let [_ (prn ">> calling exec-translation : word: " word " | target: " target)
         input (str "https://translate.google.com/#view=home&op=translate&sl=" source "&tl=" target "&text=" word)
         _ (set! (.. js/window -location -href) input)]
     (go
@@ -72,7 +72,7 @@
     (loop [[curr & more] targets]
       (if-not (nil? curr)
         (do (<! (exec-translation http-sync-chan source curr word))
-            (recur (rest more)))
+            (recur more))
         true
         ))))
 
