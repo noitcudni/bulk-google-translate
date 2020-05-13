@@ -59,10 +59,10 @@
             play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
-        (doto play-btn
-          (.dispatchEvent mouse-down-evt)
-          (.dispatchEvent mouse-up-evt))
-        (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
+        ;; (doto play-btn
+        ;;   (.dispatchEvent mouse-down-evt)
+        ;;   (.dispatchEvent mouse-up-evt))
+        ;; (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
         true)
       )))
 
@@ -82,6 +82,7 @@
         {:keys [type] :as whole-msg} (common/unmarshall message)]
     (cond (= type :done-init-translations) (do
                                              (post-message! chan (common/marshall {:type :next-word}))
+                                             (set! (.. js/window -location -href) "https://translate.google.com/#/view=home")
                                              )
           (= type :translate) (do (let [{:keys [word source target]} whole-msg]
                                     (go
