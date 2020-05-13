@@ -59,10 +59,10 @@
             play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
-        ;; (doto play-btn
-        ;;   (.dispatchEvent mouse-down-evt)
-        ;;   (.dispatchEvent mouse-up-evt))
-        ;; (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
+        (doto play-btn
+          (.dispatchEvent mouse-down-evt)
+          (.dispatchEvent mouse-up-evt))
+        (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
         true)
       )))
 
