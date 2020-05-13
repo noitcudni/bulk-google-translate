@@ -142,27 +142,27 @@
                                                js->clj
                                                (get "url"))
                                        ]
-                                   (when (clojure.string/includes? url "translate_tts")
-                                     (if (not (contains? @download-history url))
-                                       (do
-                                         (prn ">> event-args" event-args)
-                                         (prn ">> url: " url)
-                                         (swap! download-history conj url)
-                                         (download-audio url)
-                                         (post-message! (get-content-client)
-                                                        (common/marshall {:type :audio-downloaded
-                                                                          :word (url->word url)})))
-                                       (post-message! (get-content-client)
-                                                      (common/marshall {:type :audio-downloaded
-                                                                        :word (url->word url)}))))
+                                   (cond (clojure.string/includes? url "translate_tts")
+                                         (if (not (contains? @download-history url))
+                                           (do
+                                             (prn ">> event-args" event-args)
+                                             (prn ">> url: " url)
+                                             (swap! download-history conj url)
+                                             (download-audio url)
+                                             (post-message! (get-content-client)
+                                                            (common/marshall {:type :audio-downloaded
+                                                                              :word (url->word url)})))
+                                           (post-message! (get-content-client)
+                                                          (common/marshall {:type :audio-downloaded
+                                                                            :word (url->word url)})))
 
-                                   #_(when (and (clojure.string/includes? url "translate_tts")
-                                              (not (contains? @download-history url)))
-                                     (prn ">> event-args" event-args)
-                                     (prn ">> url: " url)
-                                     (swap! download-history conj url)
-                                     (download-audio url)
-                                     ))
+                                         (clojure.string/includes? (-> (cemerick.url/url url)
+                                                                       :path)
+                                                                   "single")
+                                         (post-message! (get-content-client)
+                                                        (common/marshall {:type :done-translating
+                                                                          :word (url->word url)}))
+                                         ))
       nil)))
 
 (defn run-chrome-event-loop! [chrome-event-channel]
@@ -183,5 +183,5 @@
 ; -- main entry point -------------------------------------------------------------------------------------------------------
 
 (defn init! []
-  (log "BACKGROUND: init")
+  (prn "BACKGROUND: init")
   (boot-chrome-event-loop!))

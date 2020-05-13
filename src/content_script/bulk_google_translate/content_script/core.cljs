@@ -12,7 +12,19 @@
             [goog.dom :as dom]
             ))
 
-(defn exec-translation [source target word]
+(defn sync-http [msg-type ch word]
+  (go-loop []
+    (let [data (<! ch)]
+      (if (and (= word (:word data))
+               (= msg-type (:type data)))
+        data
+        (recur)
+        ))))
+
+(def sync-http-translate (partial sync-http :done-translating))
+(def sync-http-audio-download (partial sync-http :audio-downloaded))
+
+(defn exec-translation [http-sync-chan source target word]
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
   ;; TODO: download the audio only once.
@@ -21,8 +33,8 @@
         input (str "https://translate.google.com/#view=home&op=translate&sl=" source "&tl=" target "&text=" word)
         _ (set! (.. js/window -location -href) input)]
     (go
-      (<! (async/timeout 2000))
-      (let [terse-translation (dommy/text (sel1 ".translation"))
+      (let [sync-data (<! (sync-http-translate http-sync-chan word))
+            terse-translation (dommy/text (sel1 ".translation"))
             _ (prn ">> terse-translation: " terse-translation)
             parsed-data (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
                              reverse
@@ -49,45 +61,47 @@
         (doto play-btn
           (.dispatchEvent mouse-down-evt)
           (.dispatchEvent mouse-up-evt))
+        (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
         true)
       )))
 
-(defn batch-exec-translation [source targets word]
+
+(defn batch-exec-translation [http-sync-chan source targets word]
   (go
     (loop [[curr & more] targets]
       (if-not (nil? curr)
-        (do (<! (exec-translation source curr word))
+        (do (<! (exec-translation http-sync-chan source curr word))
             (recur (rest targets)))
         true
         ))))
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
-(defn process-message! [chan message]
+(defn process-message! [http-sync-chan chan message]
   (let [_ (log "CONTENT SCRIPT: got message:" message)
         {:keys [type] :as whole-msg} (common/unmarshall message)]
     (cond (= type :done-init-translations) (do
                                              (post-message! chan (common/marshall {:type :next-word}))
                                              )
-          (= type :translate) (do (prn "handling :translate : " whole-msg)
-                                  (let [{:keys [word source target]} whole-msg]
+          (= type :translate) (do (let [{:keys [word source target]} whole-msg]
                                     (go
                                       ;; TODO how to handle erroring out of batch-exec-translation
-                                      (<! (batch-exec-translation source target word))
-                                      (prn "after batch-exec-translation:")
-                                      ;; (post-message! chan (common/marshall {:type :success :word word}))
+                                      (prn ">>>>>>>>>>>>>>>>>>>>>>>>> start batch-exec-translation: " word)
+                                      (<! (batch-exec-translation http-sync-chan source target word))
+                                      (prn "<<<<<<<<<<<<<<<<<<<<<<<<< done batch-exec-translation: " word)
+                                      (post-message! chan (common/marshall {:type :success :word word}))
                                       )))
-          (= type :audio-downloaded) (do (prn "handling :audio-downloaded")
-                                         (let [{:keys [word]} whole-msg]
-                                           (post-message! chan (common/marshall {:type :success :word word}))))
+          (= type :audio-downloaded) (go (>! http-sync-chan whole-msg))
+          (= type :done-translating) (go (>! http-sync-chan whole-msg))
           )))
 
 (defn run-message-loop! [message-channel]
   (log "CONTENT SCRIPT: starting message loop...")
-  (go-loop []
-    (when-some [message (<! message-channel)]
-      (process-message! message-channel message)
-      (recur))
-    (log "CONTENT SCRIPT: leaving message loop")))
+  (let [http-sync-chan (chan 1)]
+    (go-loop []
+      (when-some [message (<! message-channel)]
+        (process-message! http-sync-chan message-channel message)
+        (recur))
+      (log "CONTENT SCRIPT: leaving message loop"))))
 
 ; -- a simple page analysis  ------------------------------------------------------------------------------------------------
 
