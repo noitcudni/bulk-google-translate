@@ -37,23 +37,29 @@
       (let [sync-data (<! (sync-http-translate http-sync-chan word :target target))
             terse-translation (dommy/text (sel1 ".translation"))
             _ (prn ">> terse-translation: " terse-translation)
-            parsed-data (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
-                             reverse
-                             (map #(dom/getElementsByTagNameAndClass "div" "gt-baf-cell" %))
-                             (reduce (fn [accum cells]
-                                       (if-let [header-cell (dom/getElementByClass "gt-cd-pos" (first cells))]
-                                         ;; header
-                                         (conj accum {(dom/getTextContent header-cell) []})
-                                         ;; details
-                                         (let [detailed-translation (dom/getElementByClass "gt-baf-word-clickable" (first cells))
-                                               source-lang-words (dom/getElementsByClass "gt-baf-back" (second cells))
-                                               k (->> accum last keys first)]
-                                           (conj (->> accum
-                                                      butlast
-                                                      (into []))
-                                                 (update (last accum) k conj {(dom/getTextContent detailed-translation)
-                                                                              (->> source-lang-words (mapv #(dom/getTextContent %)))}))
-                                           ))) []))
+            detailed-translation-table-el (single-node (xpath "//div[contains(@class, 'gt-cd-baf')]"))
+            detailed-translation? (= "block" (-> detailed-translation-table-el
+                                                 js/window.getComputedStyle
+                                                 (aget "display")))
+            parsed-data (if detailed-translation?
+                          (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
+                               reverse
+                               (map #(dom/getElementsByTagNameAndClass "div" "gt-baf-cell" %))
+                               (reduce (fn [accum cells]
+                                         (if-let [header-cell (dom/getElementByClass "gt-cd-pos" (first cells))]
+                                           ;; header
+                                           (conj accum {(dom/getTextContent header-cell) []})
+                                           ;; details
+                                           (let [detailed-translation (dom/getElementByClass "gt-baf-word-clickable" (first cells))
+                                                 source-lang-words (dom/getElementsByClass "gt-baf-back" (second cells))
+                                                 k (->> accum last keys first)]
+                                             (conj (->> accum
+                                                        butlast
+                                                        (into []))
+                                                   (update (last accum) k conj {(dom/getTextContent detailed-translation)
+                                                                                (->> source-lang-words (mapv #(dom/getTextContent %)))}))
+                                             ))) []))
+                          [])
             _ (prn "parsed-data: " parsed-data)
 
             play-btn (sel1 ".src-tts")
