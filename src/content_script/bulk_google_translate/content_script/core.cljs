@@ -12,11 +12,12 @@
             [goog.dom :as dom]
             ))
 
-(defn sync-http [msg-type ch word]
+(defn sync-http [msg-type ch word & {:keys [target]}]
   (go-loop []
     (let [data (<! ch)]
       (if (and (= word (:word data))
-               (= msg-type (:type data)))
+               (= msg-type (:type data))
+               (= target (:tl data)))
         data
         (recur)
         ))))
@@ -29,11 +30,11 @@
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
   ;; TODO: download the audio only once.
   ;; Don't proceed until the audio is downloaded
-  (let [_ (prn ">> calling exec-translation")
+  (let [_ (prn ">> calling exec-translation : target: " target)
         input (str "https://translate.google.com/#view=home&op=translate&sl=" source "&tl=" target "&text=" word)
         _ (set! (.. js/window -location -href) input)]
     (go
-      (let [sync-data (<! (sync-http-translate http-sync-chan word))
+      (let [sync-data (<! (sync-http-translate http-sync-chan word :target target))
             terse-translation (dommy/text (sel1 ".translation"))
             _ (prn ">> terse-translation: " terse-translation)
             parsed-data (->> (nodes (xpath "//table[@class='gt-baf-table']//tr"))
@@ -58,10 +59,10 @@
             play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
-        (doto play-btn
-          (.dispatchEvent mouse-down-evt)
-          (.dispatchEvent mouse-up-evt))
-        (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
+        ;; (doto play-btn
+        ;;   (.dispatchEvent mouse-down-evt)
+        ;;   (.dispatchEvent mouse-up-evt))
+        ;; (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
         true)
       )))
 
@@ -71,7 +72,7 @@
     (loop [[curr & more] targets]
       (if-not (nil? curr)
         (do (<! (exec-translation http-sync-chan source curr word))
-            (recur (rest targets)))
+            (recur (rest more)))
         true
         ))))
 

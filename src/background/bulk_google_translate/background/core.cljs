@@ -120,7 +120,10 @@
 (def download-history (atom #{}))
 
 (defn url->word [url]
-  (-> url cemerick.url/url :query (get "q")))
+  (-> url cemerick.url/url (get-in [:query "q"])))
+
+(defn url->tl [url]
+  (-> url cemerick.url/url (get-in [:query "tl"])))
 
 (defn download-audio [url]
   (go
@@ -161,7 +164,8 @@
                                                                    "single")
                                          (post-message! (get-content-client)
                                                         (common/marshall {:type :done-translating
-                                                                          :word (url->word url)}))
+                                                                          :word (url->word url)
+                                                                          :tl (url->tl url)}))
                                          ))
       nil)))
 
