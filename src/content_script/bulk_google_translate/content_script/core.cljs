@@ -100,12 +100,13 @@
                                       )))
           (= type :audio-downloaded) (go (>! mp3-sync-chan whole-msg))
           (= type :done-translating) (go (>! http-sync-chan whole-msg))
+          (= type :done) (.reload (.. js/window -location)) ;; NOTE: need to reload to be ready for another run.
           )))
 
 (defn run-message-loop! [message-channel]
   (log "CONTENT SCRIPT: starting message loop...")
-  (let [http-sync-chan (chan 1)
-        mp3-sync-chan (chan 1)]
+  (let [http-sync-chan (chan)
+        mp3-sync-chan (chan)]
     (go-loop []
       (when-some [message (<! message-channel)]
         (process-message! http-sync-chan mp3-sync-chan message-channel message)

@@ -62,7 +62,8 @@
           [word word-entry] (<! (next-word))
           _ (prn "BACKGROUND: word: " word)
           _ (prn "BACKGROUND: word-entry: " word-entry)]
-      (cond (= word storage/*DONE-FLAG*)
+      (cond (or (= word storage/*DONE-FLAG*)
+                (nil? word))
             (do
               (reagent.session/put! :my-status :done)
               (post-message! (get-popup-client)
@@ -158,17 +159,23 @@
                                                (post-message! (get-content-client)
                                                               (common/marshall {:type :audio-downloaded
                                                                                 :word (url->word url)})))
-                                             (post-message! (get-content-client)
-                                                            (common/marshall {:type :audio-downloaded
-                                                                              :word (url->word url)})))
+                                             (do
+                                               (prn ">> web-request/on-completed - dummy audio-downloaded")
+                                               (post-message! (get-content-client)
+                                                              (common/marshall {:type :audio-downloaded
+                                                                                :word (url->word url)}))))
 
                                            (clojure.string/includes? (-> (cemerick.url/url url)
                                                                          :path)
                                                                      "single")
-                                           (post-message! (get-content-client)
-                                                          (common/marshall {:type :done-translating
-                                                                            :word (url->word url)
-                                                                            :tl (url->tl url)}))
+                                           (do
+                                             (prn ">> web-request/on-completed - done-translating")
+                                             (post-message! (get-content-client)
+                                                            (common/marshall {:type :done-translating
+                                                                              :word (url->word url)
+                                                                              :tl (url->tl url)})))
+                                           ;; :else
+                                           ;; (prn ">> web-request/on-completed: didn't match anything")
                                            )))
       nil)))
 

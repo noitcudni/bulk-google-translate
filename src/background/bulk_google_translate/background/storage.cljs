@@ -38,7 +38,7 @@
 (defn store-words!
   [{:keys [data]}]
   (let [local-storage (storage/get-local)
-        words (concat data '(*DONE-FLAG*))]
+        words (concat data (list *DONE-FLAG*))]
     (go-loop [[word & more] data
               idx 0]
       (if (nil? word)
