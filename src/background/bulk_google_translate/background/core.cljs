@@ -151,8 +151,8 @@
                                      (cond (clojure.string/includes? url "translate_tts")
                                            (if (not (contains? @download-history url))
                                              (do
-                                               (prn ">> event-args" event-args)
-                                               (prn ">> url: " url)
+                                               (prn ">> web-request/on-completed - event-args" event-args)
+                                               (prn ">> web-request/on-completed - url: " url)
                                                (swap! download-history conj url)
                                                (download-audio url)
                                                (post-message! (get-content-client)

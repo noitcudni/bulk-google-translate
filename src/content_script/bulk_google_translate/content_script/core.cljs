@@ -25,7 +25,7 @@
 (def sync-http-translate (partial sync-http :done-translating))
 (def sync-http-audio-download (partial sync-http :audio-downloaded))
 
-(defn exec-translation [http-sync-chan source target word]
+(defn exec-translation [http-sync-chan mp3-sync-chan source target word]
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//span[contains(@class,'translation')]"))))
   ;; TODO: download the audio only once.
@@ -68,22 +68,22 @@
         (doto play-btn
           (.dispatchEvent mouse-down-evt)
           (.dispatchEvent mouse-up-evt))
-        (<! (sync-http-audio-download http-sync-chan word)) ;; wait for audio-downloaded
+        (<! (sync-http-audio-download mp3-sync-chan word)) ;; wait for audio-downloaded
         true)
       )))
 
 
-(defn batch-exec-translation [http-sync-chan source targets word]
+(defn batch-exec-translation [http-sync-chan mp3-sync-chan source targets word]
   (go
     (loop [[curr & more] targets]
       (if-not (nil? curr)
-        (do (<! (exec-translation http-sync-chan source curr word))
+        (do (<! (exec-translation http-sync-chan mp3-sync-chan source curr word))
             (recur more))
         true
         ))))
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
-(defn process-message! [http-sync-chan chan message]
+(defn process-message! [http-sync-chan mp3-sync-chan chan message]
   (let [_ (log "CONTENT SCRIPT: got message:" message)
         {:keys [type] :as whole-msg} (common/unmarshall message)]
     (cond (= type :done-init-translations) (do
@@ -94,20 +94,21 @@
                                     (go
                                       ;; TODO how to handle erroring out of batch-exec-translation
                                       (prn ">>>>>>>>>>>>>>>>>>>>>>>>> start batch-exec-translation: " word)
-                                      (<! (batch-exec-translation http-sync-chan source target word))
+                                      (<! (batch-exec-translation http-sync-chan mp3-sync-chan source target word))
                                       (prn "<<<<<<<<<<<<<<<<<<<<<<<<< done batch-exec-translation: " word)
                                       (post-message! chan (common/marshall {:type :success :word word}))
                                       )))
-          (= type :audio-downloaded) (go (>! http-sync-chan whole-msg))
+          (= type :audio-downloaded) (go (>! mp3-sync-chan whole-msg))
           (= type :done-translating) (go (>! http-sync-chan whole-msg))
           )))
 
 (defn run-message-loop! [message-channel]
   (log "CONTENT SCRIPT: starting message loop...")
-  (let [http-sync-chan (chan 1)]
+  (let [http-sync-chan (chan 1)
+        mp3-sync-chan (chan 1)]
     (go-loop []
       (when-some [message (<! message-channel)]
-        (process-message! http-sync-chan message-channel message)
+        (process-message! http-sync-chan mp3-sync-chan message-channel message)
         (recur))
       (log "CONTENT SCRIPT: leaving message loop"))))
 
