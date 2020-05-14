@@ -115,11 +115,12 @@
 
 (defn batch-exec-translation [http-sync-chan mp3-sync-chan source targets word]
   (go
-    (loop [[curr & more] targets]
+    (loop [[curr & more] targets
+           accum []]
       (if-not (nil? curr)
-        (do (<! (exec-translation http-sync-chan mp3-sync-chan source curr word))
-            (recur more))
-        true
+        (let [translation-data (<! (exec-translation http-sync-chan mp3-sync-chan source curr word))]
+          (recur more (conj accum translation-data)))
+        accum
         ))))
 
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
@@ -134,9 +135,13 @@
                                     (go
                                       ;; TODO how to handle erroring out of batch-exec-translation
                                       (prn ">>>>>>>>>>>>>>>>>>>>>>>>> start batch-exec-translation: " word)
-                                      (<! (batch-exec-translation http-sync-chan mp3-sync-chan source target word))
+                                      ;; TODO find a place to store batch-exec-translation
+                                      (let [translated-data (<! (batch-exec-translation http-sync-chan mp3-sync-chan source target word))]
+                                        (post-message! chan (common/marshall {:type :success
+                                                                              :word word
+                                                                              :translated-data translated-data}))
+                                        )
                                       (prn "<<<<<<<<<<<<<<<<<<<<<<<<< done batch-exec-translation: " word)
-                                      (post-message! chan (common/marshall {:type :success :word word}))
                                       )))
           (= type :audio-downloaded) (go (>! mp3-sync-chan whole-msg))
           (= type :done-translating) (go (>! http-sync-chan whole-msg))

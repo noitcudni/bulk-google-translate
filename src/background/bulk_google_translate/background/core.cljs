@@ -16,6 +16,7 @@
             [cljs-time.coerce :as tc]
             [reagent.session]
             [cemerick.url :refer [url]]
+            [cognitect.transit :as transit]
             ))
 
 (def download-history (atom #{}))
@@ -99,10 +100,12 @@
                                     (prn "handling :next-word")
                                     (<! (fetch-next-word client)))
               (= type :success) (go
-                                  (prn "handling success!! :" whole-edn)
-                                  (let [{:keys [word]} whole-edn]
+                                  (let [_ (prn "handling success!! :" whole-edn)
+                                        {:keys [word translated-data]} whole-edn
+                                        w (transit/writer :json)]
                                     (<! (update-storage word
                                                         "status" "translated"
+                                                        "translated-data" (transit/write w translated-data)
                                                         "translated-ts" (tc/to-long (tt/now))))
                                     (prn "handling success: done with update-storage")
                                     (<! (fetch-next-word client)))
