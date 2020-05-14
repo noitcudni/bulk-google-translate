@@ -56,7 +56,6 @@
     (go
       (let [sync-data (<! (sync-http-translate http-sync-chan word :target target))
             terse-translation (dommy/text (sel1 ".translation"))
-            _ (prn ">> terse-translation: " terse-translation)
             detailed-translation-table-el (single-node (xpath "//div[contains(@class, 'gt-cd-baf')]"))
             detailed-translation? (= "block" (-> detailed-translation-table-el
                                                  js/window.getComputedStyle
@@ -80,31 +79,37 @@
                                                                                 (->> source-lang-words (mapv #(dom/getTextContent %)))}))
                                              ))) []))
                           [])
-            _ (prn "parsed-data: " parsed-data)
-            ;; _ (<! (async/timeout 2000))
             play-btn (<! (sync-single-node "//div[contains(@class, 'src-tts') and @aria-pressed='false']"))
 
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
             mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})
             download-audio-ch (sync-http-audio-download mp3-sync-chan word)
-            ]
 
-        (doto play-btn
-          (.dispatchEvent mouse-down-evt)
-          (.dispatchEvent mouse-up-evt))
-        (loop [[v _] (alts! [(async/timeout 1000) download-audio-ch])]
-          (when-not (= (:type v) :audio-downloaded)
-            (do
-              (doto play-btn
+            _ (doto play-btn
                 (.dispatchEvent mouse-down-evt)
                 (.dispatchEvent mouse-up-evt))
-              (recur (alts! [(async/timeout 1000) download-audio-ch])))))
 
-        ;; [v _] (alts! [timeout-ch download-audio-ch])
-
-
-        ;; (<! download-audio-ch) ;; wait for audio-downloaded
-        true)
+            ;; wait for audio-downloaded
+            ;; try again if it gets stuck
+            audio-meta (loop [[v _] (alts! [(async/timeout 1000) download-audio-ch])]
+                         (if (= (:type v) :audio-downloaded)
+                           v
+                           (do
+                             (doto play-btn
+                               (.dispatchEvent mouse-down-evt)
+                               (.dispatchEvent mouse-up-evt))
+                             (recur (alts! [(async/timeout 1000) download-audio-ch])))))
+            r {:word word
+               :source source
+               :target target
+               :filename (:filename audio-meta)
+               :translation {:abridged terse-translation
+                             :detailed parsed-data}
+               }
+            _ (prn ">> r: " r)
+            ]
+        r
+        )
       )))
 
 

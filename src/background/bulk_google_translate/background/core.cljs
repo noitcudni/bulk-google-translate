@@ -126,6 +126,9 @@
 (defn url->tl [url]
   (-> url cemerick.url/url (get-in [:query "tl"])))
 
+(defn url->filename [url]
+  (str (url->word url) ".mp3"))
+
 (defn download-audio [url]
   (go
     (let [word (url->word url)]
@@ -154,12 +157,16 @@
                                                (download-audio url)
                                                (post-message! (get-content-client)
                                                               (common/marshall {:type :audio-downloaded
-                                                                                :word (url->word url)})))
+                                                                                :word (url->word url)
+                                                                                :filename (url->filename url)
+                                                                                })))
                                              (do
                                                (prn ">> web-request/on-completed - dummy audio-downloaded")
                                                (post-message! (get-content-client)
                                                               (common/marshall {:type :audio-downloaded
-                                                                                :word (url->word url)}))))
+                                                                                :word (url->word url)
+                                                                                :filename (url->filename url)
+                                                                                }))))
 
                                            (clojure.string/includes? (-> (cemerick.url/url url)
                                                                          :path)
