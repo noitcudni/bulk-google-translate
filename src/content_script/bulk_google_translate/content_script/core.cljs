@@ -1,6 +1,6 @@
 (ns bulk-google-translate.content-script.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [cljs.core.async :refer [<! >! chan] :as async]
+  (:require [cljs.core.async :refer [<! >! chan alts!] :as async]
             [chromex.logging :refer-macros [log info warn error group group-end]]
             [chromex.protocols.chrome-port :refer [post-message!]]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]
@@ -24,6 +24,26 @@
 
 (def sync-http-translate (partial sync-http :done-translating))
 (def sync-http-audio-download (partial sync-http :audio-downloaded))
+
+(defn sync-node-helper
+  "This is unfortunate. alts! doens't close other channels"
+  [dom-fn & xpath-strs]
+  (go-loop []
+    (let [_ (prn ">> sync-node-helper..")
+          n (->> xpath-strs
+                 (map (fn [xpath-str]
+                        (dom-fn (xpath xpath-str))
+                        ))
+                 (filter #(some? %))
+                 first)]
+      (if (nil? n)
+        (do (<! (async/timeout 300))
+            (recur))
+        n)
+      )))
+
+(def sync-single-node (partial sync-node-helper single-node))
+(def sync-nodes (partial sync-node-helper nodes))
 
 (defn exec-translation [http-sync-chan mp3-sync-chan source target word]
   ;; (prn ">> single-node: " (dommy/text (single-node (xpath "//div[contains(@class,'result')]"))))
@@ -61,14 +81,29 @@
                                              ))) []))
                           [])
             _ (prn "parsed-data: " parsed-data)
+            ;; _ (<! (async/timeout 2000))
+            play-btn (<! (sync-single-node "//div[contains(@class, 'src-tts') and @aria-pressed='false']"))
 
-            play-btn (sel1 ".src-tts")
             mouse-down-evt (js/MouseEvent. "mousedown" #js{:bubbles true})
-            mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})]
+            mouse-up-evt (js/MouseEvent. "mouseup" #js{:bubbles true})
+            download-audio-ch (sync-http-audio-download mp3-sync-chan word)
+            ]
+
         (doto play-btn
           (.dispatchEvent mouse-down-evt)
           (.dispatchEvent mouse-up-evt))
-        (<! (sync-http-audio-download mp3-sync-chan word)) ;; wait for audio-downloaded
+        (loop [[v _] (alts! [(async/timeout 1000) download-audio-ch])]
+          (when-not (= (:type v) :audio-downloaded)
+            (do
+              (doto play-btn
+                (.dispatchEvent mouse-down-evt)
+                (.dispatchEvent mouse-up-evt))
+              (recur (alts! [(async/timeout 1000) download-audio-ch])))))
+
+        ;; [v _] (alts! [timeout-ch download-audio-ch])
+
+
+        ;; (<! download-audio-ch) ;; wait for audio-downloaded
         true)
       )))
 
@@ -100,7 +135,7 @@
                                       )))
           (= type :audio-downloaded) (go (>! mp3-sync-chan whole-msg))
           (= type :done-translating) (go (>! http-sync-chan whole-msg))
-          (= type :done) (.reload (.. js/window -location)) ;; NOTE: need to reload to be ready for another run.
+          (= type :done) (prn "all done!")
           )))
 
 (defn run-message-loop! [message-channel]
