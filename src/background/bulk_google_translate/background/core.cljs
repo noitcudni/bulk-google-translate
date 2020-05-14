@@ -65,6 +65,7 @@
       (cond (or (= word storage/*DONE-FLAG*)
                 (nil? word))
             (do
+              (reset! download-history #{})
               (reagent.session/put! :my-status :done)
               (post-message! (get-popup-client)
                              (common/marshall {:type :done}))
@@ -117,10 +118,6 @@
   (add-client! client)
   (run-client-message-loop! client))
 
-(defn tell-clients-about-new-tab! []
-  (doseq [client @clients]
-    (post-message! client "a new tab was created")))
-
 ; -- main event loop --------------------------------------------------------------------------------------------------------
 
 (defn url->word [url]
@@ -143,7 +140,6 @@
   (let [[event-id event-args] event]
     (case event-id
       ::runtime/on-connect (apply handle-client-connection! event-args)
-      ::tabs/on-created (tell-clients-about-new-tab!)
       ::web-request/on-completed (when (= :running (reagent.session/get :my-status))
                                    (let [url (-> event-args
                                                  first
