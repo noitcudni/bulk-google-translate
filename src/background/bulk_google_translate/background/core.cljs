@@ -18,6 +18,7 @@
             [cemerick.url :refer [url]]
             ))
 
+(def download-history (atom #{}))
 (def clients (atom []))
 
 ; -- clients manipulation ---------------------------------------------------------------------------------------------------
@@ -89,6 +90,7 @@
                                               (reagent.session/put! :source (:source whole-edn))
                                               (reagent.session/put! :target (:target whole-edn))
                                               (reagent.session/put! :my-status :running)
+                                              (reset! download-history #{})
                                               (post-message! (get-content-client) (common/marshall {:type :done-init-translations}))
                                               )
               (= type :next-word) (do
@@ -119,7 +121,6 @@
     (post-message! client "a new tab was created")))
 
 ; -- main event loop --------------------------------------------------------------------------------------------------------
-(def download-history (atom #{}))
 
 (defn url->word [url]
   (-> url cemerick.url/url (get-in [:query "q"])))
