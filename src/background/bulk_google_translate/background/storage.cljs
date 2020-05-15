@@ -53,6 +53,26 @@
             )))
       )))
 
+(defn get-translated-words []
+  (let [local-storage (storage/get-local)]
+    (go
+      (let [[[items] error] (<! (storage-area/get local-storage))
+            rdr (transit/reader :json)]
+        (if error
+          (error "fetch all error:" error)
+          (->> items
+               js->clj
+               (filter (fn [[k v]]
+                         (= "translated" (get v "status"))
+                         ))
+               (map (fn [[k v]]
+                      {:translated-data (transit/read rdr (get v "translated-data"))
+                       :word k}
+                      ))
+               )
+          )))
+    ))
+
 (defn current-translation-attempt
   []
   (let [local-storage (storage/get-local)]
