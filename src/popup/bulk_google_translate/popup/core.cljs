@@ -28,9 +28,12 @@
 (defn process-message! [message]
   (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
     (cond (= type :done) (go (let [data (<! (storage/get-translated-words))]
-                               (prn "translated data: " data)
-                               ))
-          )
+                               (prn
+                                (->> data
+                                     (map :translated-data)
+                                     (apply concat)
+                                     (group-by :word)))
+                               )))
     ))
 
 (defn run-message-loop! [message-channel]
