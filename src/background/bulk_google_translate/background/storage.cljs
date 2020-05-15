@@ -17,7 +17,7 @@
   [{:keys [data]}]
   (let [local-storage (storage/get-local)
         words (concat data (list *DONE-FLAG*))]
-    (go-loop [[word & more] data
+    (go-loop [[word & more] words
               idx 0]
       (if (nil? word)
         (prn "DONE storing source words")

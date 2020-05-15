@@ -63,8 +63,7 @@
           [word word-entry] (<! (next-word))
           _ (prn "BACKGROUND: word: " word)
           _ (prn "BACKGROUND: word-entry: " word-entry)]
-      (cond (or (= word storage/*DONE-FLAG*)
-                (nil? word))
+      (cond (= word storage/*DONE-FLAG*)
             (do
               (reset! download-history #{})
               (reagent.session/put! :my-status :done)
