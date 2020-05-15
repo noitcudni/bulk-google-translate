@@ -494,8 +494,10 @@
       [recom/h-box
        :children [[recom/v-box
                    :width "700px"
+                   :margin "10px"
                    :align :start
-                   :children [[recom/p "We will bulk translate from one language to one or many languages. First, do you want to let Google translate auto detect your input language?"]
+                   :children [[recom/p "This extension translates from one language to one or many languages in bulk."]
+                              [recom/title :label "First, do you want to let Google translate auto detect your input language?" :level :level2]
                               [recom/radio-button
                                :label "yes"
                                :model auto-detect-ratom?
@@ -512,7 +514,7 @@
                                             (reagent.session/put! :source #{}))]
                               (when (= @auto-detect-ratom? false)
                                 [recom/v-box
-                                 :children [[recom/p "Please select your input language"]
+                                 :children [[recom/title :label "Please select your input language" :level :level2]
                                             [lang-option-pane :source]]])
                               ]]
                   (when @display-next-ratom?
@@ -532,9 +534,10 @@
   (let [display-next-ratom? (reaction (not (empty? (reagent.session/get :target))))]
     [recom/h-box
      :children [[recom/v-box
+                 :margin "10px"
                  :width "700px"
                  :align :start
-                 :children [[recom/p "Please select your target languages"]
+                 :children [[recom/title :label "Please select your target languages" :level :level2]
                             [lang-option-pane :target]]]
 
                 (when @display-next-ratom?
@@ -578,7 +581,7 @@
                   :label "Download translations"
                   :disabled? @display-download-ratom?
                   :style {:width "200px"
-                          :background-color "#007bff"
+                          :background-color "#28a745"
                           :color "white"}
                   :on-click (fn [e]
                               (go (let [data (<! (storage/get-translated-words))
