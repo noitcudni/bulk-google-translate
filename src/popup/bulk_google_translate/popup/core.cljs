@@ -27,13 +27,15 @@
 
 (defn process-message! [message]
   (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
-    (cond (= type :done) (go (let [data (<! (storage/get-translated-words))]
-                               (prn
-                                (->> data
-                                     (map :translated-data)
-                                     (apply concat)
-                                     (group-by :word)))
-                               )))
+    (cond (= type :done) (reagent.session/put! :done-translating true)
+          #_(go (let [data (<! (storage/get-translated-words))]
+                (reagent.session/put! :done-translating true)
+                (prn
+                 (->> data
+                      (map :translated-data)
+                      (apply concat)
+                      (group-by :word)))
+                )))
     ))
 
 (defn run-message-loop! [message-channel]
@@ -556,27 +558,45 @@
      ]))
 
 (defn pane-3 []
-  [recom/v-box
-   :width "700px"
-   :align :center
-   :children [[:div {:style {:display "none"}}
-               [:input {:id "bulkCsvFileInput" :type "file"
-                        :on-change (fn [e]
-                                     (put! upload-chan e)
-                                     )}]]
-              [recom/h-box
-               :align :start
-               :style {:padding "10px"}
-               :children [[recom/button
-                           :label "Submit CSV File"
-                           ;; :tooltip [recom/v-box
-                           ;;           :children [[recom/label :label "Tooltip goes here"]]
-                           ;;           ]
-                           :style {:width "200px"
-                                   :background-color "#007bff"
-                                   :color "white"}
-                           :on-click (fn [e] (-> "//input[@id='bulkCsvFileInput']" xpath single-node .click))]]]]
-   ])
+  (let [display-download-ratom? (reaction (not (reagent.session/get :done-translating)))]
+    (fn []
+     [recom/v-box
+      :width "700px"
+      :align :center
+      :children [[:div {:style {:display "none"}}
+                  [:input {:id "bulkCsvFileInput" :type "file"
+                           :on-change (fn [e]
+                                        (put! upload-chan e)
+                                        )}]]
+                 [recom/h-box
+                  :align :start
+                  :style {:padding "10px"}
+                  :children [[recom/button
+                              :label "Submit CSV File"
+                              ;; :tooltip [recom/v-box
+                              ;;           :children [[recom/label :label "Tooltip goes here"]]
+                              ;;           ]
+                              :style {:width "200px"
+                                      :background-color "#007bff"
+                                      :color "white"}
+                              :on-click (fn [e] (-> "//input[@id='bulkCsvFileInput']" xpath single-node .click))]]]
+                 [recom/button
+                  :label "Download translations"
+                  :disabled? @display-download-ratom?
+                  :style {:width "200px"
+                          :background-color "#007bff"
+                          :color "white"}
+                  :on-click (fn [e]
+                              (go (let [data (<! (storage/get-translated-words))]
+                                    (prn
+                                     (->> data
+                                          (map :translated-data)
+                                          (apply concat)
+                                          (group-by :word)))
+                                    ))
+                              )
+                  ]]
+      ])))
 
 (defn current-page []
   (let [;;current-step-ratom (reagent/atom :step1)
@@ -602,7 +622,8 @@
 
       ;; (reagent.session/reset! (<! (storage/get-ui-state)))
       (reagent.session/reset! {:target #{}
-                               :source #{}})
+                               :source #{}
+                               :done-translating false})
 
       (storage/clear-words!)
 
