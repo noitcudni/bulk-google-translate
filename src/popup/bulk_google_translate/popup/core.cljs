@@ -26,7 +26,9 @@
 ; -- a message loop ---------------------------------------------------------------------------------------------------------
 
 (defn process-message! [message]
-  (log "POPUP: got message:" message))
+  (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
+    (cond (= type :done) (prn "popup:process-message! " message))
+    ))
 
 (defn run-message-loop! [message-channel]
   (log "POPUP: starting message loop...")
@@ -590,7 +592,6 @@
   (let [background-port (runtime/connect)]
     (go
       (log "POPUP: init")
-      (connect-to-background-page! background-port)
       (prn "init reagent.session/state")
 
       ;; (reagent.session/reset! (<! (storage/get-ui-state)))
@@ -630,5 +631,6 @@
           (recur)
           ))
 
+      (connect-to-background-page! background-port)
       (mount-root)))
   )
