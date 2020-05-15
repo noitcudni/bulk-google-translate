@@ -10,7 +10,9 @@
             [reagent.core :as reagent :refer [atom]]
             [reagent.session]
             [domina.xpath :refer [xpath]]
+            [cognitect.transit :as transit]
             [domina :refer [single-node nodes]]
+            [chromex.ext.downloads :refer-macros [download]]
             [bulk-google-translate.background.storage :as storage]
             [bulk-google-translate.content-script.common :as common]
             [chromex.ext.runtime :as runtime :refer-macros [connect]]))
@@ -27,15 +29,7 @@
 
 (defn process-message! [message]
   (let [{:keys [type] :as whole-edn} (common/unmarshall message)]
-    (cond (= type :done) (reagent.session/put! :done-translating true)
-          #_(go (let [data (<! (storage/get-translated-words))]
-                (reagent.session/put! :done-translating true)
-                (prn
-                 (->> data
-                      (map :translated-data)
-                      (apply concat)
-                      (group-by :word)))
-                )))
+    (cond (= type :done) (reagent.session/put! :done-translating true))
     ))
 
 (defn run-message-loop! [message-channel]
@@ -587,14 +581,22 @@
                           :background-color "#007bff"
                           :color "white"}
                   :on-click (fn [e]
-                              (go (let [data (<! (storage/get-translated-words))]
-                                    (prn
-                                     (->> data
-                                          (map :translated-data)
-                                          (apply concat)
-                                          (group-by :word)))
-                                    ))
-                              )
+                              (go (let [data (<! (storage/get-translated-words))
+                                        w (transit/writer :json-verbose)
+                                        content (transit/write w (->> data
+                                                                      (map :translated-data)
+                                                                      (apply concat)
+                                                                      (group-by :word)
+                                                                      clojure.walk/stringify-keys
+                                                                      ))
+                                        data-blob (js/Blob. (clj->js [content])
+                                                            (clj->js {:type "application/json"}))
+                                        url (js/URL.createObjectURL data-blob)]
+                                    (download (clj->js {:url url
+                                                        :filename "translation.json"
+                                                        :saveAs true
+                                                        :conflictAction "overwrite"}))
+                                    )))
                   ]]
       ])))
 
