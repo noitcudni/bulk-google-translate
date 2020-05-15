@@ -525,25 +525,27 @@
                   ]])))
 
 (defn pane-2 []
-  [recom/h-box
-   :children [[recom/v-box
-               :width "700px"
-               :align :start
-               :children [[recom/p "Please select your target languages"]
-                          [lang-option-pane :target]]]
+  (let [display-next-ratom? (reaction (not (empty? (reagent.session/get :target))))]
+    [recom/h-box
+     :children [[recom/v-box
+                 :width "700px"
+                 :align :start
+                 :children [[recom/p "Please select your target languages"]
+                            [lang-option-pane :target]]]
 
-              [recom/box
-               :align :center
-               :child [recom/button
-                       :label "Next"
-                       :style {:height "500px"
-                               :background-color "#28a745"
-                               :color "white"}
-                       :on-click (fn [_]
-                                   (reagent.session/put! :curr-pane :step3)
-                                   )]]
-              ]
-   ])
+                (when @display-next-ratom?
+                  [recom/box
+                   :align :center
+                   :child [recom/button
+                           :label "Next"
+                           :style {:height "500px"
+                                   :background-color "#28a745"
+                                   :color "white"}
+                           :on-click (fn [_]
+                                       (reagent.session/put! :curr-pane :step3)
+                                       )]])
+                ]
+     ]))
 
 (defn pane-3 []
   [recom/v-box
