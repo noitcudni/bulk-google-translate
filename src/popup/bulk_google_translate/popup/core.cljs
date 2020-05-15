@@ -53,871 +53,433 @@
     ))
 
 (defn lang-option-pane [type]
-  (let [;;cb-handler-fn (cb-handler-fn-fn type)
-        ;; Afrikaans	af
-        af-ratom (reaction (contains? (reagent.session/get type) "af"))
-        ;; Albanian	sq
-        sq-ratom (reaction (contains? (reagent.session/get type) "sq"))
-        ;; Amharic	am
-        am-ratom (reaction (contains? (reagent.session/get type) "am"))
-        ;; Arabic	ar
-        ar-ratom (reaction (contains? (reagent.session/get type) "ar"))
-        ;; Armenian	hy
-        hy-ratom (reaction (contains? (reagent.session/get type) "hy"))
-        ;; Azerbaijani	az
-        az-ratom (reaction (contains? (reagent.session/get type) "az"))
+  (let [all-iso-ratom [{
+                        :label "Afrikaans"
+                        :iso "af"
+                        :ratom (reaction (contains? (reagent.session/get type) "af"))}
+                       {:label "Albanian"
+                        :iso "sq"
+                        :ratom (reaction (contains? (reagent.session/get type) "sq"))}
+                       {:label "Amharic"
+                        :iso "am"
+                        :ratom (reaction (contains? (reagent.session/get type) "am"))}
+                       {:label "Arabic"
+                        :iso "ar"
+                        :ratom (reaction (contains? (reagent.session/get type) "ar"))}
+                       {:label "Armenian"
+                        :iso "hy"
+                        :ratom (reaction (contains? (reagent.session/get type) "hy"))}
+                       {:label "Azerbaijani"
+                        :iso "az"
+                        :ratom (reaction (contains? (reagent.session/get type) "az"))}
+                       {:label "Basque"
+                        :iso "eu"
+                        :ratom (reaction (contains? (reagent.session/get type) "eu"))}
+                       {:label "Belarusian"
+                        :iso "be"
+                        :ratom (reaction (contains? (reagent.session/get type) "be"))}
+                       {:label "Bengali"
+                        :iso "bn"
+                        :ratom (reaction (contains? (reagent.session/get type) "bn"))}
+                       {:label "Bosnian"
+                        :iso "bs"
+                        :ratom (reaction (contains? (reagent.session/get type) "bs"))}
+                       {:label "Bulgarian"
+                        :iso "bg"
+                        :ratom (reaction (contains? (reagent.session/get type) "bg"))}
+                       {:label "Catalan"
+                        :iso "ca"
+                        :ratom (reaction (contains? (reagent.session/get type) "ca"))}
+                       {:label "Cebuano"
+                        :iso "ceb"
+                        :ratom (reaction (contains? (reagent.session/get type) "ceb"))}
+                       {:label "Chichewa"
+                        :iso "ny"
+                        :ratom (reaction (contains? (reagent.session/get type) "ny"))}
+                       {:label "Chinese"
+                        :iso  "zh-CN"
+                        :ratom (reaction (contains? (reagent.session/get type) "zh-CN"))}
+                       {:label "Corsican"
+                        :iso "co"
+                        :ratom (reaction (contains? (reagent.session/get type) "co"))}
+                       {:label "Croatian"
+                        :iso "hr"
+                        :ratom (reaction (contains? (reagent.session/get type) "hr"))}
+                       {:label "Czech"
+                        :iso "cs"
+                        :ratom (reaction (contains? (reagent.session/get type) "cs"))}
 
-        ;; Basque	eu
-        eu-ratom (reaction (contains? (reagent.session/get type) "eu"))
-        ;; Belarusian	be
-        be-ratom (reaction (contains? (reagent.session/get type) "be"))
-        ;; Bengali	bn
-        bn-ratom (reaction (contains? (reagent.session/get type) "bn"))
-        ;; Bosnian	bs
-        bs-ratom (reaction (contains? (reagent.session/get type) "bs"))
-        ;; Bulgarian	bg
-        bg-ratom (reaction (contains? (reagent.session/get type) "bg"))
+                       {:label "Danish"
+                        :iso "da"
+                        :ratom (reaction (contains? (reagent.session/get type) "da"))}
 
-        ;; Catalan	ca
-        ca-ratom (reaction (contains? (reagent.session/get type) "ca"))
-        ;; Cebuano	ceb
-        eb-ratom (reaction (contains? (reagent.session/get type) "eb"))
-        ;; Chichewa ny
-        ny-ratom (reaction (contains? (reagent.session/get type) "ny"))
-        ;; Chinese (Simplified)	zh-CN
-        zh-CN-ratom (reaction (contains? (reagent.session/get type) "zh-CN"))
-        ;; ;; Chinese (Traditional)	zh-TW
-        ;; zh-TW-ratom (reaction (contains? (reagent.session/get type) "zh-TW"))
-        ;; Corsican	co
-        co-ratom (reaction (contains? (reagent.session/get type) "co"))
-        ;; Croatian	hr
-        hr-ratom (reaction (contains? (reagent.session/get type) "hr"))
-        ;; Czech	cs
-        cs-ratom (reaction (contains? (reagent.session/get type) "cs"))
+                       {:label "Dutch"
+                        :iso "nl"
+                        :ratom (reaction (contains? (reagent.session/get type) "nl"))}
 
-        ;; Danish	da
-        da-ratom (reaction (contains? (reagent.session/get type) "da"))
-        ;; Dutch	nl
-        nl-ratom (reaction (contains? (reagent.session/get type) "nl"))
-        ;; English	en
-        en-ratom (reaction (contains? (reagent.session/get type) "en"))
-        ;; Esperanto	eo
-        eo-ratom (reaction (contains? (reagent.session/get type) "eo"))
-        ;; Estonian	et
-        et-ratom (reaction (contains? (reagent.session/get type) "et"))
+                       {:label "English"
+                        :iso "en"
+                        :ratom (reaction (contains? (reagent.session/get type) "en"))}
 
-        ;; Filipino tl
-        tl-ratom (reaction (contains? (reagent.session/get type) "tl"))
-        ;; Finnish	fi
-        fi-ratom (reaction (contains? (reagent.session/get type) "fi"))
-        ;; French	fr
-        fr-ratom (reaction (contains? (reagent.session/get type) "fr"))
-        ;; Frisian	fy
-        fy-ratom (reaction (contains? (reagent.session/get type) "fy"))
+                       {:label "Esperanto"
+                        :iso "eo"
+                        :ratom (reaction (contains? (reagent.session/get type) "eo"))}
 
-        ;; Galician	gl
-        gl-ratom (reaction (contains? (reagent.session/get type) "gl"))
-        ;; Georgian	ka
-        ka-ratom (reaction (contains? (reagent.session/get type) "ka"))
-        ;; German	de
-        de-ratom (reaction (contains? (reagent.session/get type) "de"))
-        ;; Greek	el
-        el-ratom (reaction (contains? (reagent.session/get type) "el"))
-        ;; Gujarati	gu
-        gu-ratom (reaction (contains? (reagent.session/get type) "gu"))
+                       {:label "Estonian"
+                        :iso "et"
+                        :ratom (reaction (contains? (reagent.session/get type) "et"))}
 
-        ;; Haitian Creole	ht
-        ht-ratom (reaction (contains? (reagent.session/get type) "ht"))
-        ;; Hausa	ha
-        ha-ratom (reaction (contains? (reagent.session/get type) "ha"))
-        ;; Hawaiian	haw
-        haw-ratom (reaction (contains? (reagent.session/get type) "haw"))
-        ;; Hebrew	he or iw
-        iw-ratom (reaction (contains? (reagent.session/get type) "iw"))
-        ;; Hindi	hi
-        hi-ratom (reaction (contains? (reagent.session/get type) "hi"))
-        ;; Hmong	hmn
-        hmn-ratom (reaction (contains? (reagent.session/get type) "hmn"))
-        ;; Hungarian	hu
-        hu-ratom (reaction (contains? (reagent.session/get type) "hu"))
-        ;; Icelandic	is
-        is-ratom (reaction (contains? (reagent.session/get type) "is"))
-        ;; Igbo	ig
-        ig-ratom (reaction (contains? (reagent.session/get type) "ig"))
-        ;; Indonesian	id
-        id-ratom (reaction (contains? (reagent.session/get type) "id"))
-        ;; Irish	ga
-        ga-ratom (reaction (contains? (reagent.session/get type) "ga"))
-        ;; Italian	it
-        it-ratom (reaction (contains? (reagent.session/get type) "it"))
+                       {:label "Filipino"
+                        :iso "tl"
+                        :ratom (reaction (contains? (reagent.session/get type) "tl"))}
 
-        ;; Japanese	ja
-        ja-ratom (reaction (contains? (reagent.session/get type) "ja"))
-        ;; Javanese	jv
-        jv-ratom (reaction (contains? (reagent.session/get type) "jv"))
-        ;; Kannada	kn
-        kn-ratom (reaction (contains? (reagent.session/get type) "kn"))
-        ;; Kazakh	kk
-        kk-ratom (reaction (contains? (reagent.session/get type) "kk"))
-        ;; Khmer	km
-        km-ratom (reaction (contains? (reagent.session/get type) "km"))
+                       {:label "Finnish"
+                        :iso "fi"
+                        :ratom (reaction (contains? (reagent.session/get type) "fi"))}
 
-        ;; Kinyarwanda rw
-        rw-ratom (reaction (contains? (reagent.session/get type) "rw"))
-        ;; Korean	ko
-        ko-ratom (reaction (contains? (reagent.session/get type) "ko")) ;; Kurdish	ku
-        ku-ratom (reaction (contains? (reagent.session/get type) "ku"))
-        ;; Kyrgyz	ky
-        ky-ratom (reaction (contains? (reagent.session/get type) "ky"))
+                       {:label "French"
+                        :iso "fr"
+                        :ratom (reaction (contains? (reagent.session/get type) "fr"))}
 
-        ;; Lao	lo
-        lo-ratom (reaction (contains? (reagent.session/get type) "lo"))
-        ;; Latin	la
-        la-ratom (reaction (contains? (reagent.session/get type) "la"))
-        ;; Latvian	lv
-        lv-ratom (reaction (contains? (reagent.session/get type) "lv"))
-        ;; Lithuanian	lt
-        lt-ratom (reaction (contains? (reagent.session/get type) "lt"))
-        ;; Luxembourgish	lb
-        lb-ratom (reaction (contains? (reagent.session/get type) "lb"))
+                       {:label "Frisian"
+                        :iso "fy"
+                        :ratom (reaction (contains? (reagent.session/get type) "fy"))}
 
-        ;; https://cloud.google.com/translate/docs/languages
+                       {:label "Galician"
+                        :iso "gl"
+                        :ratom (reaction (contains? (reagent.session/get type) "gl"))}
 
-        ;; Macedonian	mk
-        mk-ratom (reaction (contains? (reagent.session/get type) "mk"))
-        ;; Malagasy	mg
-        mg-ratom (reaction (contains? (reagent.session/get type) "mg"))
-        ;; Malay	ms
-        ms-ratom (reaction (contains? (reagent.session/get type) "ms"))
-        ;; Malayalam	ml
-        ml-ratom (reaction (contains? (reagent.session/get type) "ml"))
-        ;; Maltese	mt
-        mt-ratom (reaction (contains? (reagent.session/get type) "mt"))
-        ;; Maori	mi
-        mi-ratom (reaction (contains? (reagent.session/get type) "mi"))
-        ;; Marathi	mr
-        mr-ratom (reaction (contains? (reagent.session/get type) "mr"))
-        ;; Mongolian	mn
-        mn-ratom (reaction (contains? (reagent.session/get type) "mn"))
-        ;; Myanmar (Burmese)	my
-        my-ratom (reaction (contains? (reagent.session/get type) "my"))
+                       {:label "Georgian"
+                        :iso "ka"
+                        :ratom (reaction (contains? (reagent.session/get type) "ka"))}
 
-        ;; Nepali	ne
-        ne-ratom (reaction (contains? (reagent.session/get type) "ne"))
-        ;; Norwegian	no
-        no-ratom (reaction (contains? (reagent.session/get type) "no"))
-        ;; Odia or
-        or-ratom (reaction (contains? (reagent.session/get type) "or"))
+                       {:label "German"
+                        :iso "de"
+                        :ratom (reaction (contains? (reagent.session/get type) "de"))}
 
-        ;; Pashto	ps
-        ps-ratom (reaction (contains? (reagent.session/get type) "ps"))
-        ;; Persian	fa
-        fa-ratom (reaction (contains? (reagent.session/get type) "fa"))
-        ;; Polish	pl
-        pl-ratom (reaction (contains? (reagent.session/get type) "pl"))
-        ;; Portuguese (Portugal, Brazil)	pt
-        pt-ratom (reaction (contains? (reagent.session/get type) "pt"))
-        ;; Punjabi	pa
-        pa-ratom (reaction (contains? (reagent.session/get type) "pa"))
+                       {:label "Greek"
+                        :iso "el"
+                        :ratom (reaction (contains? (reagent.session/get type) "el"))}
 
-        ;; Romanian	ro
-        ro-ratom (reaction (contains? (reagent.session/get type) "ro"))
-        ;; Russian	ru
-        ru-ratom (reaction (contains? (reagent.session/get type) "ru"))
-        ;; Samoan	sm
-        sm-ratom (reaction (contains? (reagent.session/get type) "sm"))
-        ;; Scots Gaelic	gd
-        gd-ratom (reaction (contains? (reagent.session/get type) "gd"))
-        ;; Serbian	sr
-        sr-ratom (reaction (contains? (reagent.session/get type) "sr"))
+                       {:label "Gujarati"
+                        :iso "gu"
+                        :ratom (reaction (contains? (reagent.session/get type) "gu"))}
+                       {:label "Haitian Creole"
+                        :iso "ht"
+                        :ratom (reaction (contains? (reagent.session/get type) "ht"))}
 
-        ;; Sesotho	st
-        st-ratom (reaction (contains? (reagent.session/get type) "st"))
-        ;; Shona	sn
-        sn-ratom (reaction (contains? (reagent.session/get type) "sn"))
-        ;; Sindhi	sd
-        sd-ratom (reaction (contains? (reagent.session/get type) "sd"))
-        ;; Sinhala (Sinhalese)	si
-        si-ratom (reaction (contains? (reagent.session/get type) "si"))
-        ;; Slovak	sk
-        sk-ratom (reaction (contains? (reagent.session/get type) "sk"))
-        ;; Slovenian	sl
-        sl-ratom (reaction (contains? (reagent.session/get type) "sl"))
-        ;; Somali	so
-        so-ratom (reaction (contains? (reagent.session/get type) "so"))
-        ;; Spanish	es
-        es-ratom (reaction (contains? (reagent.session/get type) "es"))
-        ;; Sundanese	su
-        su-ratom (reaction (contains? (reagent.session/get type) "su"))
-        ;; Swahili	sw
-        sw-ratom (reaction (contains? (reagent.session/get type) "sw"))
-        ;; Swedish	sv
-        sv-ratom (reaction (contains? (reagent.session/get type) "sv"))
+                       {:label "Hausa"
+                        :iso "ha"
+                        :ratom (reaction (contains? (reagent.session/get type) "ha"))}
 
-        ;; Tajik	tg
-        tg-ratom (reaction (contains? (reagent.session/get type) "tg"))
-        ;; Tamil	ta
-        ta-ratom (reaction (contains? (reagent.session/get type) "ta"))
-        ;; Tatar tt
-        tt-ratom (reaction (contains? (reagent.session/get type) "tt"))
-        ;; Telugu	te
-        te-ratom (reaction (contains? (reagent.session/get type) "te"))
-        ;; Thai	th
-        th-ratom (reaction (contains? (reagent.session/get type) "th"))
-        ;; Turkish	tr
-        tr-ratom (reaction (contains? (reagent.session/get type) "tr"))
-        ;; Turkmen tk
-        tk-ratom (reaction (contains? (reagent.session/get type) "tk"))
-        ;; Ukrainian	uk
-        uk-ratom (reaction (contains? (reagent.session/get type) "uk"))
-        ;; Urdu	ur
-        ur-ratom (reaction (contains? (reagent.session/get type) "ur"))
-        ;; Uyghur ug
-        ug-ratom (reaction (contains? (reagent.session/get type) "ug"))
-        ;; Uzbek	uz
-        uz-ratom (reaction (contains? (reagent.session/get type) "uz"))
+                       {:label "Hawaiian"
+                        :iso  "haw"
+                        :ratom (reaction (contains? (reagent.session/get type) "haw"))}
 
-        ;; Vietnamese	vi
-        vi-ratom (reaction (contains? (reagent.session/get type) "vi"))
-        ;; Welsh	cy
-        cy-ratom (reaction (contains? (reagent.session/get type) "cy"))
+                       {:label "Hebrew"
+                        :iso "iw"
+                        :ratom (reaction (contains? (reagent.session/get type) "iw"))}
 
+                       {:label "Hindi"
+                        :iso "hi"
+                        :ratom (reaction (contains? (reagent.session/get type) "hi"))}
 
-        ;; Xhosa	xh
-        xh-ratom (reaction (contains? (reagent.session/get type) "xh"))
-        ;; Yiddish	yi
-        yi-ratom (reaction (contains? (reagent.session/get type) "yi"))
-        ;; Yoruba	yo
-        yo-ratom (reaction (contains? (reagent.session/get type) "yo"))
-        ;; Zulu	zu
-        zu-ratom (reaction (contains? (reagent.session/get type) "zu"))
-        ]
+                       {:label "Hmong"
+                        :iso  "hmn"
+                        :ratom (reaction (contains? (reagent.session/get type) "hmn"))}
+
+                       {:label "Hungarian"
+                        :iso "hu"
+                        :ratom (reaction (contains? (reagent.session/get type) "hu"))}
+
+                       {:label "Icelandic"
+                        :iso "is"
+                        :ratom (reaction (contains? (reagent.session/get type) "is"))}
+
+                       {:label "Igbo"
+                        :iso "ig"
+                        :ratom (reaction (contains? (reagent.session/get type) "ig"))}
+
+                       {:label "Indonesian"
+                        :iso "id"
+                        :ratom (reaction (contains? (reagent.session/get type) "id"))}
+
+                       {:label "Irish"
+                        :iso "ga"
+                        :ratom (reaction (contains? (reagent.session/get type) "ga"))}
+
+                       {:label "Italian"
+                        :iso "it"
+                        :ratom (reaction (contains? (reagent.session/get type) "it"))}
+
+                       {:label "Japanese"
+                        :iso "ja"
+                        :ratom (reaction (contains? (reagent.session/get type) "ja"))}
+
+                       {:label "Javanese"
+                        :iso "jv"
+                        :ratom (reaction (contains? (reagent.session/get type) "jv"))}
+
+                       {:label "Kannada"
+                        :iso "kn"
+                        :ratom (reaction (contains? (reagent.session/get type) "kn"))}
+
+                       {:label "Kazakh"
+                        :iso "kk"
+                        :ratom (reaction (contains? (reagent.session/get type) "kk"))}
+
+                       {:label "Khmer"
+                        :iso "km"
+                        :ratom (reaction (contains? (reagent.session/get type) "km"))}
+
+                       {:label "Kinyarwanda"
+                        :iso "rw"
+                        :ratom (reaction (contains? (reagent.session/get type) "rw"))}
+
+                       {:label "Korean"
+                        :iso "ko"
+                        :ratom (reaction (contains? (reagent.session/get type) "ko"))}
+
+                       {:label "Kurdish"
+                        :iso "ku"
+                        :ratom (reaction (contains? (reagent.session/get type) "ku"))}
+
+                       {:label "Kyrgyz"
+                        :iso "ky"
+                        :ratom (reaction (contains? (reagent.session/get type) "ky"))}
+
+                       {:label "Lao"
+                        :iso "lo"
+                        :ratom (reaction (contains? (reagent.session/get type) "lo"))}
+
+                       {:label "Latin"
+                        :iso "la"
+                        :ratom (reaction (contains? (reagent.session/get type) "la"))}
+
+                       {:label "Latvian"
+                        :iso "lv"
+                        :ratom (reaction (contains? (reagent.session/get type) "lv"))}
+
+                       {:label "Lithuanian"
+                        :iso "lt"
+                        :ratom (reaction (contains? (reagent.session/get type) "lt"))}
+
+                       {:label "Luxembourgish"
+                        :iso "lb"
+                        :ratom (reaction (contains? (reagent.session/get type) "lb"))}
+
+                       {:label "Macedonian"
+                        :iso "mk"
+                        :ratom (reaction (contains? (reagent.session/get type) "mk"))}
+
+                       {:label "Malagasy"
+                        :iso "mg"
+                        :ratom (reaction (contains? (reagent.session/get type) "mg"))}
+
+                       {:label "Malay"
+                        :iso "ms"
+                        :ratom (reaction (contains? (reagent.session/get type) "ms"))}
+
+                       {:label "Malayalam"
+                        :iso "ml"
+                        :ratom (reaction (contains? (reagent.session/get type) "ml"))}
+
+                       {:label "Maltese"
+                        :iso "mt"
+                        :ratom (reaction (contains? (reagent.session/get type) "mt"))}
+
+                       {:label "Maori"
+                        :iso "mi"
+                        :ratom (reaction (contains? (reagent.session/get type) "mi"))}
+
+                       {:label "Marathi"
+                        :iso "mr"
+                        :ratom (reaction (contains? (reagent.session/get type) "mr"))}
+
+                       {:label "Mongolian"
+                        :iso "mn"
+                        :ratom (reaction (contains? (reagent.session/get type) "mn"))}
+                       {:label "Myanmar (Burmese)"
+                        :iso "my"
+                        :ratom (reaction (contains? (reagent.session/get type) "my"))}
+
+                       {:label "Nepali"
+                        :iso "ne"
+                        :ratom (reaction (contains? (reagent.session/get type) "ne"))}
+
+                       {:label "Norwegian"
+                        :iso "no"
+                        :ratom (reaction (contains? (reagent.session/get type) "no"))}
+
+                       {:label "Odia"
+                        :iso "or"
+                        :ratom (reaction (contains? (reagent.session/get type) "or"))}
+
+                       {:label "Pashto"
+                        :iso "ps"
+                        :ratom (reaction (contains? (reagent.session/get type) "ps"))}
+
+                       {:label "Persian"
+                        :iso "fa"
+                        :ratom (reaction (contains? (reagent.session/get type) "fa"))}
+
+                       {:label "Polish"
+                        :iso "pl"
+                        :ratom (reaction (contains? (reagent.session/get type) "pl"))}
+
+                       {:label "Portuguese"
+                        :iso "pt"
+                        :ratom (reaction (contains? (reagent.session/get type) "pt"))}
+
+                       {:label "Punjabi"
+                        :iso "pa"
+                        :ratom (reaction (contains? (reagent.session/get type) "pa"))}
+
+                       {:label "Romanian"
+                        :iso "ro"
+                        :ratom (reaction (contains? (reagent.session/get type) "ro"))}
+
+                       {:label "Russian"
+                        :iso "ru"
+                        :ratom (reaction (contains? (reagent.session/get type) "ru"))}
+
+                       {:label "Samoan"
+                        :iso "sm"
+                        :ratom (reaction (contains? (reagent.session/get type) "sm"))}
+
+                       {:label "Scots Gaelic"
+                        :iso "gd"
+                        :ratom (reaction (contains? (reagent.session/get type) "gd"))}
+
+                       {:label "Serbian"
+                        :iso "sr"
+                        :ratom (reaction (contains? (reagent.session/get type) "sr"))}
+
+                       {:label "Sesotho"
+                        :iso "st"
+                        :ratom (reaction (contains? (reagent.session/get type) "st"))}
+
+                       {:label "Shona"
+                        :iso "sn"
+                        :ratom (reaction (contains? (reagent.session/get type) "sn"))}
+
+                       {:label "Sindhi"
+                        :iso "sd"
+                        :ratom (reaction (contains? (reagent.session/get type) "sd"))}
+                       {:label "Sinhala (Sinhalese)"
+                        :iso "si"
+                        :ratom (reaction (contains? (reagent.session/get type) "si"))}
+
+                       {:label "Slovak"
+                        :iso "sk"
+                        :ratom (reaction (contains? (reagent.session/get type) "sk"))}
+
+                       {:label "Slovenian"
+                        :iso "sl"
+                        :ratom (reaction (contains? (reagent.session/get type) "sl"))}
+
+                       {:label "Somali"
+                        :iso "so"
+                        :ratom (reaction (contains? (reagent.session/get type) "so"))}
+
+                       {:label "Spanish"
+                        :iso "es"
+                        :ratom (reaction (contains? (reagent.session/get type) "es"))}
+
+                       {:label "Sundanese"
+                        :iso "su"
+                        :ratom (reaction (contains? (reagent.session/get type) "su"))}
+
+                       {:label "Swahili"
+                        :iso "sw"
+                        :ratom (reaction (contains? (reagent.session/get type) "sw"))}
+
+                       {:label "Swedish"
+                        :iso "sv"
+                        :ratom (reaction (contains? (reagent.session/get type) "sv"))}
+
+                       {:label "Tajik"
+                        :iso "tg"
+                        :ratom (reaction (contains? (reagent.session/get type) "tg"))}
+
+                       {:label "Tamil"
+                        :iso "ta"
+                        :ratom (reaction (contains? (reagent.session/get type) "ta"))}
+
+                       {:label "Tatar"
+                        :iso "tt"
+                        :ratom (reaction (contains? (reagent.session/get type) "tt"))}
+
+                       {:label "Telugu"
+                        :iso "te"
+                        :ratom (reaction (contains? (reagent.session/get type) "te"))}
+
+                       {:label "Thai"
+                        :iso "th"
+                        :ratom (reaction (contains? (reagent.session/get type) "th"))}
+
+                       {:label "Turkish"
+                        :iso "tr"
+                        :ratom (reaction (contains? (reagent.session/get type) "tr"))}
+
+                       {:label "Turkmen"
+                        :iso "tk"
+                        :ratom (reaction (contains? (reagent.session/get type) "tk"))}
+
+                       {:label "Ukrainian"
+                        :iso "uk"
+                        :ratom (reaction (contains? (reagent.session/get type) "uk"))}
+
+                       {:label "Urdu"
+                        :iso "ur"
+                        :ratom (reaction (contains? (reagent.session/get type) "ur"))}
+
+                       {:label "Uyghur"
+                        :iso "ug"
+                        :ratom (reaction (contains? (reagent.session/get type) "ug"))}
+
+                       {:label "Uzbek"
+                        :iso "uz"
+                        :ratom (reaction (contains? (reagent.session/get type) "uz"))}
+
+                       {:label "Vietnamese"
+                        :iso "vi"
+                        :ratom (reaction (contains? (reagent.session/get type) "vi"))}
+
+                       {:label "Welsh"
+                        :iso "cy"
+                        :ratom (reaction (contains? (reagent.session/get type) "cy"))}
+
+                       {:label "Xhosa"
+                        :iso "xh"
+                        :ratom (reaction (contains? (reagent.session/get type) "xh"))}
+
+                       {:label "Yiddish"
+                        :iso "yi"
+                        :ratom (reaction (contains? (reagent.session/get type) "yi"))}
+
+                       {:label "Yoruba"
+                        :iso "yo"
+                        :ratom (reaction (contains? (reagent.session/get type) "yo"))}
+
+                       {:label "Zulu"
+                        :iso "zu"
+                        :ratom (reaction (contains? (reagent.session/get type) "zu"))}]
+
+        partitioned-iso-ratom (partition-all 4 all-iso-ratom)]
+
     [:table
-     [:tbody
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @af-ratom
-         :on-change (cb-handler-fn type "af")
-         :label [recom/label :label "Afrikaans" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @sq-ratom
-         :on-change (cb-handler-fn type "sq")
-         :label [recom/label :label "Albanian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @am-ratom
-         :on-change (cb-handler-fn type "am")
-         :label [recom/label :label "Amharic" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ar-ratom
-         :on-change (cb-handler-fn type "ar")
-         :label [recom/label :label "Arabic" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @hy-ratom
-         :on-change (cb-handler-fn type "hy")
-         :label [recom/label :label "Armenian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @az-ratom
-         :on-change (cb-handler-fn type "az")
-         :label [recom/label :label "Azerbaijani" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @eu-ratom
-         :on-change (cb-handler-fn type "eu")
-         :label [recom/label :label "Basque" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @be-ratom
-         :on-change (cb-handler-fn type "be")
-         :label [recom/label :label "Belarusian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @bn-ratom
-         :on-change (cb-handler-fn type "bn")
-         :label [recom/label :label "Bengali" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @bs-ratom
-         :on-change (cb-handler-fn type "bs")
-         :label [recom/label :label "Bosnian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @bg-ratom
-         :on-change (cb-handler-fn type "bg")
-         :label [recom/label :label "Bulgarian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @ca-ratom
-         :on-change (cb-handler-fn type "ca")
-         :label [recom/label :label "Catalan" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @eb-ratom
-         :on-change (cb-handler-fn type "eb")
-         :label [recom/label :label "Cebuano" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ny-ratom
-         :on-change (cb-handler-fn type "ny")
-         :label [recom/label :label "Chichewa" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @zh-CN-ratom
-         :on-change (cb-handler-fn type "zh-CN")
-         :label [recom/label :label "Chinese (Simplified)" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       #_[:td
-        [recom/checkbox
-         :model @zh-TW-ratom
-         :on-change (cb-handler-fn type "zh-TW")
-         :label [recom/label :label "Chinese (Traditional)" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @co-ratom
-         :on-change (cb-handler-fn type "co")
-         :label [recom/label :label "Corsican" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @hr-ratom
-         :on-change (cb-handler-fn type "hr")
-         :label [recom/label :label "Croatian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @cs-ratom
-         :on-change (cb-handler-fn type "cs")
-         :label [recom/label :label "Czech" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @da-ratom
-         :on-change (cb-handler-fn type "da")
-         :label [recom/label :label "Danish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @nl-ratom
-         :on-change (cb-handler-fn type "nl")
-         :label [recom/label :label "Dutch" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @en-ratom
-         :on-change (cb-handler-fn type "en")
-         :label [recom/label :label "English" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @eo-ratom
-         :on-change (cb-handler-fn type "eo")
-         :label [recom/label :label "Esperanto" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @et-ratom
-         :on-change (cb-handler-fn type "et")
-         :label [recom/label :label "Estonian" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @tl-ratom
-         :on-change (cb-handler-fn type "tl")
-         :label [recom/label :label "Filipino" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @fi-ratom
-         :on-change (cb-handler-fn type "fi")
-         :label [recom/label :label "Finnish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @fr-ratom
-         :on-change (cb-handler-fn type "fr")
-         :label [recom/label :label "French" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @fy-ratom
-         :on-change (cb-handler-fn type "fy")
-         :label [recom/label :label "Frisian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @gl-ratom
-         :on-change (cb-handler-fn type "gl")
-         :label [recom/label :label "Galician" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ka-ratom
-         :on-change (cb-handler-fn type "ka")
-         :label [recom/label :label "Georgian" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @de-ratom
-         :on-change (cb-handler-fn type "de")
-         :label [recom/label :label "German" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @el-ratom
-         :on-change (cb-handler-fn type "el")
-         :label [recom/label :label "Greek" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @gu-ratom
-         :on-change (cb-handler-fn type "gu")
-         :label [recom/label :label "Gujarati" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ht-ratom
-         :on-change (cb-handler-fn type "ht")
-         :label [recom/label :label "Haitian Creole" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ha-ratom
-         :on-change (cb-handler-fn type "ha")
-         :label [recom/label :label "Hausa" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @haw-ratom
-         :on-change (cb-handler-fn type "haw")
-         :label [recom/label :label "Hawaiian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @iw-ratom
-         :on-change (cb-handler-fn type "iw")
-         :label [recom/label :label "Hebrew" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @hi-ratom
-         :on-change (cb-handler-fn type "hi")
-         :label [recom/label :label "Hindi" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @hmn-ratom
-         :on-change (cb-handler-fn type "hmn")
-         :label [recom/label :label "Hmong" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @hu-ratom
-         :on-change (cb-handler-fn type "hu")
-         :label [recom/label :label "Hungarian" :style {:margin-top "3px"}]]]
-
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @is-ratom
-         :on-change (cb-handler-fn type "is")
-         :label [recom/label :label "Icelandic" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ig-ratom
-         :on-change (cb-handler-fn type "ig")
-         :label [recom/label :label "Igbo" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @id-ratom
-         :on-change (cb-handler-fn type "id")
-         :label [recom/label :label "Indonesian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ga-ratom
-         :on-change (cb-handler-fn type "ga")
-         :label [recom/label :label "Irish" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @it-ratom
-         :on-change (cb-handler-fn type "it")
-         :label [recom/label :label "Italian" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @ja-ratom
-         :on-change (cb-handler-fn type "ja")
-         :label [recom/label :label "Japanese" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @jv-ratom
-         :on-change (cb-handler-fn type "jv")
-         :label [recom/label :label "Javanese" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @kn-ratom
-         :on-change (cb-handler-fn type "kn")
-         :label [recom/label :label "Kannada" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @kk-ratom
-         :on-change (cb-handler-fn type "kk")
-         :label [recom/label :label "Kazakh" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @km-ratom
-         :on-change (cb-handler-fn type "km")
-         :label [recom/label :label "Khmer" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @rw-ratom
-         :on-change (cb-handler-fn type "rw")
-         :label [recom/label :label "Kinyarwanda" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ko-ratom
-         :on-change (cb-handler-fn type "ko")
-         :label [recom/label :label "Korean" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @ku-ratom
-         :on-change (cb-handler-fn type "ku")
-         :label [recom/label :label "Kurdish (Kurmanji)" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ky-ratom
-         :on-change (cb-handler-fn type "ky")
-         :label [recom/label :label "Kyrgyz" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @lo-ratom
-         :on-change (cb-handler-fn type "lo")
-         :label [recom/label :label "Lao" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @la-ratom
-         :on-change (cb-handler-fn type "la")
-         :label [recom/label :label "Latin" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @lv-ratom
-         :on-change (cb-handler-fn type "lv")
-         :label [recom/label :label "Latvian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @lt-ratom
-         :on-change (cb-handler-fn type "lt")
-         :label [recom/label :label "Lithuanian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @lb-ratom
-         :on-change (cb-handler-fn type "lb")
-         :label [recom/label :label "Luxembourgish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @mk-ratom
-         :on-change (cb-handler-fn type "mk")
-         :label [recom/label :label "Macedonian" :style {:margin-top "3px"}]]]
-
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @mg-ratom
-         :on-change (cb-handler-fn type "mg")
-         :label [recom/label :label "Malagasy" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ms-ratom
-         :on-change (cb-handler-fn type "ms")
-         :label [recom/label :label "Malay" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ml-ratom
-         :on-change (cb-handler-fn type "ml")
-         :label [recom/label :label "Malayalam" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @mt-ratom
-         :on-change (cb-handler-fn type "mt")
-         :label [recom/label :label "Maltese" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @mi-ratom
-         :on-change (cb-handler-fn type "mi")
-         :label [recom/label :label "Maori" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @mr-ratom
-         :on-change (cb-handler-fn type "mr")
-         :label [recom/label :label "Marathi" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @mn-ratom
-         :on-change (cb-handler-fn type "mn")
-         :label [recom/label :label "Mongolian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @my-ratom
-         :on-change (cb-handler-fn type "my")
-         :label [recom/label :label "Myanmar" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @ne-ratom
-         :on-change (cb-handler-fn type "ne")
-         :label [recom/label :label "Nepali" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @no-ratom
-         :on-change (cb-handler-fn type "no")
-         :label [recom/label :label "Norwegian (Bokmål)" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @or-ratom
-         :on-change (cb-handler-fn type "or")
-         :label [recom/label :label "Odia" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @ps-ratom
-         :on-change (cb-handler-fn type "ps")
-         :label [recom/label :label "Pashto" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @fa-ratom
-         :on-change (cb-handler-fn type "fa")
-         :label [recom/label :label "Persian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @pl-ratom
-         :on-change (cb-handler-fn type "pl")
-         :label [recom/label :label "Polish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @pt-ratom
-         :on-change (cb-handler-fn type "pt")
-         :label [recom/label :label "Portuguese" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @pa-ratom
-         :on-change (cb-handler-fn type "pa")
-         :label [recom/label :label "Punjabi (Gurmukhi)" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @ro-ratom
-         :on-change (cb-handler-fn type "ro")
-         :label [recom/label :label "Romanian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @ru-ratom
-         :on-change (cb-handler-fn type "ru")
-         :label [recom/label :label "Russian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @sm-ratom
-         :on-change (cb-handler-fn type "sm")
-         :label [recom/label :label "Samoan" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @gd-ratom
-         :on-change (cb-handler-fn type "gd")
-         :label [recom/label :label "Scots Gaelic" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @sr-ratom
-         :on-change (cb-handler-fn type "sr")
-         :label [recom/label :label "Serbian" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @st-ratom
-         :on-change (cb-handler-fn type "st")
-         :label [recom/label :label "Sesotho" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @sn-ratom
-         :on-change (cb-handler-fn type "sn")
-         :label [recom/label :label "Shona" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @sd-ratom
-         :on-change (cb-handler-fn type "sd")
-         :label [recom/label :label "Sindhi" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @si-ratom
-         :on-change (cb-handler-fn type "si")
-         :label [recom/label :label "Sinhala" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @sk-ratom
-         :on-change (cb-handler-fn type "sk")
-         :label [recom/label :label "Slovak" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @sl-ratom
-         :on-change (cb-handler-fn type "sl")
-         :label [recom/label :label "Slovenian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @so-ratom
-         :on-change (cb-handler-fn type "so")
-         :label [recom/label :label "Somali" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @es-ratom
-         :on-change (cb-handler-fn type "es")
-         :label [recom/label :label "Spanish" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @su-ratom
-         :on-change (cb-handler-fn type "su")
-         :label [recom/label :label "Sundanese" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @sw-ratom
-         :on-change (cb-handler-fn type "sw")
-         :label [recom/label :label "Swahili" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @sv-ratom
-         :on-change (cb-handler-fn type "sv")
-         :label [recom/label :label "Swedish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @tg-ratom
-         :on-change (cb-handler-fn type "tg")
-         :label [recom/label :label "Tajik" :style {:margin-top "3px"}]]]
-
-       ]
-
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @ta-ratom
-         :on-change (cb-handler-fn type "ta")
-         :label [recom/label :label "Tamil" :style {:margin-top "3px"}]]]
-       ;; voice output unavailable for tator
-       [:td
-        [recom/checkbox
-         :model @tt-ratom
-         :on-change (cb-handler-fn type "tt")
-         :label [recom/label :label "Tatar" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @te-ratom
-         :on-change (cb-handler-fn type "te")
-         :label [recom/label :label "Telugu" :style {:margin-top "3px"}]]]
-
-       [:td
-        [recom/checkbox
-         :model @th-ratom
-         :on-change (cb-handler-fn type "th")
-         :label [recom/label :label "Thai" :style {:margin-top "3px"}]]]
-
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @tr-ratom
-         :on-change (cb-handler-fn type "tr")
-         :label [recom/label :label "Turkish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @tk-ratom
-         :on-change (cb-handler-fn type "tk")
-         :label [recom/label :label "Turkmen" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @uk-ratom
-         :on-change (cb-handler-fn type "uk")
-         :label [recom/label :label "Ukrainian" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @ur-ratom
-         :on-change (cb-handler-fn type "ur")
-         :label [recom/label :label "Urdu" :style {:margin-top "3px"}]]]
-
-
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @ug-ratom
-         :on-change (cb-handler-fn type "ug")
-         :label [recom/label :label "Uyghur" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @uz-ratom
-         :on-change (cb-handler-fn type "uz")
-         :label [recom/label :label "Uzbek" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @vi-ratom
-         :on-change (cb-handler-fn type "vi")
-         :label [recom/label :label "Vietnamese" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @cy-ratom
-         :on-change (cb-handler-fn type "cy")
-         :label [recom/label :label "Welsh" :style {:margin-top "3px"}]]]
-
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @xh-ratom
-         :on-change (cb-handler-fn type "xh")
-         :label [recom/label :label "Xhosa" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @yi-ratom
-         :on-change (cb-handler-fn type "yi")
-         :label [recom/label :label "Yiddish" :style {:margin-top "3px"}]]]
-       [:td
-        [recom/checkbox
-         :model @yo-ratom
-         :on-change (cb-handler-fn type "yo")
-         :label [recom/label :label "Yoruba" :style {:margin-top "3px"}]]]
-       ]
-      [:tr
-       [:td
-        [recom/checkbox
-         :model @zu-ratom
-         :on-change (cb-handler-fn type "zu")
-         :label [recom/label :label "Zulu" :style {:margin-top "3px"}]]]]
-      ]
-     ]
+     (into [:tbody]
+           (for [row partitioned-iso-ratom]
+             (into [:tr]
+                   (for [{:keys [iso label ratom]} row]
+                     [:td
+                      [recom/checkbox
+                       :model @ratom
+                       :on-change (cb-handler-fn type iso)
+                       :label [recom/label :label label :style {:margin-top "3px"}]]
+                      ]
+                     ))))]
     )
   )
 
