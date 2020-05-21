@@ -150,7 +150,17 @@
                                                  first
                                                  js->clj
                                                  (get "url"))]
-                                     (cond (clojure.string/includes? url "translate_tts")
+                                     (cond (clojure.string/includes? url "sorry/index")
+                                           (do
+                                             (prn ">> need to back off")
+                                             (post-message! (get-content-client)
+                                                            (common/marshall {:type :audio-download-error
+                                                                              :word (url->word url)
+                                                                              :filename (url->filename url)
+                                                                              }))
+                                             )
+
+                                           (clojure.string/includes? url "translate_tts")
                                            (if (not (contains? @download-history url))
                                              (do
                                                (prn ">> web-request/on-completed - event-args" event-args)
@@ -179,6 +189,7 @@
                                                             (common/marshall {:type :done-translating
                                                                               :word (url->word url)
                                                                               :tl (url->tl url)})))
+
                                            ;; :else
                                            ;; (prn ">> web-request/on-completed: didn't match anything")
                                            )))

@@ -91,14 +91,15 @@
 
             ;; wait for audio-downloaded
             ;; try again if it gets stuck
-            audio-meta (loop [[v _] (alts! [(async/timeout 1000) download-audio-ch])]
-                         (if (= (:type v) :audio-downloaded)
-                           v
-                           (do
-                             (doto play-btn
-                               (.dispatchEvent mouse-down-evt)
-                               (.dispatchEvent mouse-up-evt))
-                             (recur (alts! [(async/timeout 1000) download-audio-ch])))))
+            audio-meta (loop [cnt 1
+                              [v _] (alts! [(async/timeout 1000) download-audio-ch])]
+                         (if (= (:type v) :audio-downloaded) v
+                             (do
+                               (doto play-btn
+                                 (.dispatchEvent mouse-down-evt)
+                                 (.dispatchEvent mouse-up-evt))
+                               (recur (inc cnt)
+                                      (alts! [(async/timeout (* 1000 (int (Math/pow 2 cnt)))) download-audio-ch])))))
             r {:word word
                :source source
                :target target
@@ -111,7 +112,6 @@
         r
         )
       )))
-
 
 (defn batch-exec-translation [http-sync-chan mp3-sync-chan source targets word]
   (go
@@ -143,7 +143,8 @@
                                         )
                                       (prn "<<<<<<<<<<<<<<<<<<<<<<<<< done batch-exec-translation: " word)
                                       )))
-          (= type :audio-downloaded) (go (>! mp3-sync-chan whole-msg))
+          (or (= type :audio-downloaded)
+              (= type :audio-download-error)) (go (>! mp3-sync-chan whole-msg))
           (= type :done-translating) (go (>! http-sync-chan whole-msg))
           (= type :done) (prn "all done!")
           )))
